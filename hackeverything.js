@@ -44,22 +44,24 @@ export async function main(ns) {
                         ns.print(`Could not nuke ${server}`);
                     }
                 }
-                //     } else if (server != "home") {
-                //         let processes = ns.ps(server);
-                //         var skippable = 0;
-                //         for (var i = 0; i < processes.length; i++) {
-                //             if (processes[i].filename == "basichack.js") {
-                //                 skippable = 1;
-                //                 ns.print(`${server} is running basichack already`);
-                //             }
-                //         };
-                //         if (skippable == 0) {
+            } else if (server != "home" && server != "darkweb") {
+                var processes = ns.ps(server);
+                var skippable = 0;
+                if (processes) {
 
-                //             // copy the hackin' script and run it
-                //             ns.print(`running basichack.js on ${server}`);
-                //             ns.scp("basichack.js", server);
-                //             ns.exec("basichack.js", server, 1, server);
-                //         }
+                    for (let process of processes) {
+                        if (process.filename == "basichack.js") {
+                            skippable = 1;
+                            // ns.print(`${server} is running basichack already`);
+                        }
+                    };
+                    if (skippable == 0) {
+                        // copy the hackin' script and run it
+                        ns.print(`running basichack.js on ${server}`);
+                        ns.scp("basichack.js", server);
+                        ns.exec("basichack.js", server, 1, server);
+                    }
+                }
             }
         }
         await ns.sleep(1000);
