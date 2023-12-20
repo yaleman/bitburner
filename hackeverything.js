@@ -1,4 +1,4 @@
-
+// TODO: work out how to make a list of things to hack and attack each other from the hacked nodes
 
 async function spider(ns, serverList) {
     var newlist = serverList.slice();
@@ -20,10 +20,10 @@ export async function main(ns) {
     var serverList = ["home"];
 
     while (true) {
-
         ns.clearLog();
         let myHackingLevel = ns.getPlayer().skills.hacking;
         serverList = await spider(ns, serverList);
+        let hackedServers = [];
         for (var i = 0; i < serverList.length; i++) {
             let server = serverList[i];
             if (!ns.hasRootAccess(server)) {
@@ -45,6 +45,7 @@ export async function main(ns) {
                     }
                 }
             } else if (server != "home" && server != "darkweb") {
+                hackedServers.push(server);
                 var processes = ns.ps(server);
                 var skippable = 0;
                 if (processes) {
@@ -64,6 +65,8 @@ export async function main(ns) {
                 }
             }
         }
+        ns.print(`hacked servers: ${hackedServers.length}`);
+        ns.print(`servers: ${serverList.length}`);
         await ns.sleep(1000);
     }
 
