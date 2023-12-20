@@ -73,14 +73,8 @@ export async function main(ns) {
               break;
           }
         }
-        // } else {
-        // ns.print(`node ${node} profit `, profits);
       }
-
-      // ns.print("profits ", profits, " highestProfit ", highestProfit);
     }
-
-    // ns.print(`upgradeCost ${upgradeCost} nodeToUpgrade ${nodeToUpgrade} type ${upgradeType}`)
 
     if (upgradeCost > 0 && upgradeCost < ns.hacknet.getPurchaseNodeCost()) {
       ns.print(`upgrading ${upgradeType} on node #${nodeToUpgrade}`);
@@ -103,6 +97,6 @@ export async function main(ns) {
       ns.print(`Currently have ${ns.hacknet.numNodes()} hacknet nodes`);
 
     }
-    await ns.asleep(10);
+    await ns.asleep(1000);
   }
 }
