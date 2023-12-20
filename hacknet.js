@@ -30,6 +30,7 @@ function getHighestProfit(profits) {
 export async function main(ns) {
   ns.disableLog('ALL');
   while (true) {
+    ns.clearLog();
     const currmoney = ns.getPlayer().money;
 
 
@@ -97,6 +98,6 @@ export async function main(ns) {
       ns.print(`Currently have ${ns.hacknet.numNodes()} hacknet nodes`);
 
     }
-    await ns.asleep(1000);
+    await ns.asleep(100);
   }
 }
