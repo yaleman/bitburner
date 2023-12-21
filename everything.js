@@ -1,24 +1,27 @@
-// TODO: work out how to make a list of things to hack and attack each other from the hacked nodes
-
 async function spider(ns, serverList) {
-    var newlist = serverList.slice();
+    let badnames = ['darkweb', '0', 0, ".", "home"];
 
     try {
-        let badnames = ['darkweb'];
+        // ns.print(`spidering ${serverList}`);
+        var newlist = serverList.slice();
         for (var target of serverList) {
-            for (var scanTarget of await ns.scan(target)) {
+            // ns.print(`scanning ${target}`);
+            for (var scanTarget of ns.scan(target)) {
                 if (!badnames.includes(scanTarget) && !newlist.includes(scanTarget)) {
-                    if (!scanTarget.startsWith("myserver")) {
-                        newlist.push(scanTarget);
+                    ns.print(`adding ${scanTarget} to list`);
+                    newlist.push(scanTarget);
+                    // await ns.asleep(1);
+                } else {
+                    // ns.print(`${scanTarget} already in list`);
 
-                    }
                 }
             }
         }
     } catch {
         ns.print(`spider failed on ${serverList}`);
+        // await ns.asleep(1);
     }
-    return newlist;
+    return [...new Set(newlist)];
 }
 
 /** @param {NS} ns */
@@ -26,17 +29,12 @@ export async function main(ns) {
     ns.disableLog('ALL');
     var serverList = ["home"];
 
-    try {
-        while (true) {
+    while (true) {
+        try {
             let myHackingLevel = ns.getPlayer().skills.hacking;
             serverList = await spider(ns, serverList);
             let hackedServers = [];
             for (let server of serverList) {
-                let serverData = ns.getServer(server);
-                if (!serverData.backdoorInstalled && server == "CSEC") {
-                    ns.print("Need to backdoor CSEC");
-                }
-
 
                 if (!ns.hasRootAccess(server)) {
                     if (ns.getServerRequiredHackingLevel(server) <= myHackingLevel) {
@@ -62,16 +60,13 @@ export async function main(ns) {
                             ns.print(`Could not hack port on ${server}`);
                         }
                         try {
-
                             ns.nuke(server);
                         } catch {
                             ns.print(`Could not nuke ${server}`);
                         }
                     }
-                } else if (server != "home" && server != "darkweb") {
-
-                    if (server == "CSEC") {
-                    }
+                }
+                else if (server != "home" && server != "darkweb") {
 
                     hackedServers.push(server);
                     var processes = ns.ps(server);
@@ -87,26 +82,27 @@ export async function main(ns) {
                             }
                         };
                         if (skippableBasic == 0) {
-                            // copy the hackin' script and run it
+                            // ns.print(`running basichack.js on ${server}`);
                             ns.print(`running basichack.js on ${server}`);
-                            ns.scp("basichack.js", server);
+                            ns.scp("basichack.js", server, "home");
                             ns.exec("basichack.js", server, 1, server);
                         }
-                        if (skippableShare < 5) {
+                        if (skippableShare < 3) {
+                            ns.print(`running share.js on ${server}`);
                             ns.scp("share.js", server);
                             ns.exec("share.js", server, 1);
                         }
                     }
                 }
             }
+            ns.print(new Date().toISOString());
             ns.print(`hacked servers: ${hackedServers.length}`);
             ns.print(`servers: ${serverList.length}`);
-            ns.print(`sharepower ${ns.getSharePower()}`);
-            await ns.sleep(1000);
+            ns.print(`sharepower ${ns.getSharePower()}\n\n`);
+            await ns.asleep(10);
+        } catch {
+            ns.print(`failed on ${serverList}`);
         }
-    } catch {
-        ns.print(`failed on ${serverList}`);
     }
-
 
 }
