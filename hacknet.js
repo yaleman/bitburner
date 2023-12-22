@@ -94,9 +94,6 @@ export async function main(ns) {
     } else if (currmoney >= ns.hacknet.getPurchaseNodeCost()) {
       ns.print(`Buying a new node...`);
       ns.hacknet.purchaseNode();
-    } else {
-      ns.print(`Currently have ${ns.hacknet.numNodes()} hacknet nodes`);
-
     }
     await ns.asleep(100);
   }
