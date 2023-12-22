@@ -1,25 +1,41 @@
-async function spider(ns, serverList) {
-    let badnames = ['darkweb', '0', 0, ".", "home"];
+const badnames = ['darkweb', '0', 0, ".", "home"];
 
+function scpAndRun(ns, serverName) {
+    var processes = ns.ps(serverName);
+    var skippableBasic = 0;
+    var skippableShare = 0;
+    for (let process of processes) {
+        if (process.filename == "basichack.js") {
+            skippableBasic = 1;
+        }
+        if (process.filename == "share.js") {
+            skippableShare += 1;
+        }
+    };
+    if (skippableBasic == 0) {
+        ns.scp("basichack.js", serverName);
+        ns.exec("basichack.js", serverName, 1, serverName);
+    }
+    if (skippableShare < 3) {
+        ns.scp("share.js", serverName);
+        ns.exec("share.js", serverName, 1);
+    }
+}
+
+async function spider(ns, serverList) {
+    var newlist = serverList.slice();
     try {
-        // ns.print(`spidering ${serverList}`);
-        var newlist = serverList.slice();
         for (var target of serverList) {
-            // ns.print(`scanning ${target}`);
             for (var scanTarget of ns.scan(target)) {
                 if (!badnames.includes(scanTarget) && !newlist.includes(scanTarget)) {
-                    ns.print(`adding ${scanTarget} to list`);
                     newlist.push(scanTarget);
-                    // await ns.asleep(1);
-                } else {
-                    // ns.print(`${scanTarget} already in list`);
-
                 }
             }
         }
+        await ns.sleep(1);
     } catch {
         ns.print(`spider failed on ${serverList}`);
-        // await ns.asleep(1);
+        await ns.asleep(1);
     }
     return [...new Set(newlist)];
 }
@@ -35,73 +51,47 @@ export async function main(ns) {
             serverList = await spider(ns, serverList);
             let hackedServers = [];
             for (let server of serverList) {
-
+                if (ns.getServerRequiredHackingLevel(server) > myHackingLevel) {
+                    continue;
+                }
                 if (!ns.hasRootAccess(server)) {
-                    if (ns.getServerRequiredHackingLevel(server) <= myHackingLevel) {
-                        ns.print(`hacking ${server}`);
-                        try {
-                            if (ns.fileExists("BruteSSH.exe", "home")) {
-                                ns.brutessh(server);
-                            }
-                            if (ns.fileExists("FTPCrack.exe", "home")) {
-                                ns.ftpcrack(server);
-                            }
-                            if (ns.fileExists("relaySMTP.exe", "home")) {
-                                ns.relaysmtp(server);
-                            }
-                            if (ns.fileExists("HTTPWorm.exe", "home")) {
-                                ns.httpworm(server);
-                            }
-                            if (ns.fileExists("SQLInject.exe", "home")) {
-                                ns.sqlinject(server);
-                            }
-
-                        } catch {
-                            ns.print(`Could not hack port on ${server}`);
-                        }
-                        try {
-                            ns.nuke(server);
-                        } catch {
-                            ns.print(`Could not nuke ${server}`);
-                        }
+                    ns.print(`hi ${server}`);
+                    if (ns.fileExists("BruteSSH.exe")) {
+                        ns.brutessh(server);
+                    }
+                    if (ns.fileExists("FTPCrack.exe")) {
+                        ns.ftpcrack(server);
+                    }
+                    if (ns.fileExists("relaySMTP.exe")) {
+                        ns.relaysmtp(server);
+                    }
+                    if (ns.fileExists("HTTPWorm.exe")) {
+                        ns.httpworm(server);
+                    }
+                    if (ns.fileExists("SQLInject.exe", "home")) {
+                        ns.sqlinject(server);
+                    }
+                    try {
+                        await ns.asleep(0);
+                        // ns.nuke(server);
+                    } catch (err) {
+                        ns.print(`Could not nuke ${server}: ${err}`);
                     }
                 }
                 else if (server != "home" && server != "darkweb") {
-
                     hackedServers.push(server);
-                    var processes = ns.ps(server);
-                    var skippableBasic = 0;
-                    var skippableShare = 0;
-                    if (processes) {
-                        for (let process of processes) {
-                            if (process.filename == "basichack.js") {
-                                skippableBasic = 1;
-                            }
-                            if (process.filename == "share.js") {
-                                skippableShare += 1;
-                            }
-                        };
-                        if (skippableBasic == 0) {
-                            // ns.print(`running basichack.js on ${server}`);
-                            ns.print(`running basichack.js on ${server}`);
-                            ns.scp("basichack.js", server, "home");
-                            ns.exec("basichack.js", server, 1, server);
-                        }
-                        if (skippableShare < 3) {
-                            ns.print(`running share.js on ${server}`);
-                            ns.scp("share.js", server);
-                            ns.exec("share.js", server, 1);
-                        }
-                    }
+                    scpAndRun(ns, server);
+
                 }
             }
             ns.print(new Date().toISOString());
             ns.print(`hacked servers: ${hackedServers.length}`);
             ns.print(`servers: ${serverList.length}`);
             ns.print(`sharepower ${ns.getSharePower()}\n\n`);
-            await ns.asleep(10);
-        } catch {
-            ns.print(`failed on ${serverList}`);
+            await ns.sleep(100);
+        } catch (err) {
+            ns.print(`failed!  ${err}`);
+            await ns.sleep(100);
         }
     }
 
