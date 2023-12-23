@@ -19,33 +19,35 @@ export async function main(ns) {
         // on the target server
         try {
             if (ns.fileExists("BruteSSH.exe", "home")) {
-                ns.brutessh(server);
+                ns.brutessh(target);
             }
             if (ns.fileExists("FTPCrack.exe", "home")) {
-                ns.ftpcrack(server);
+                ns.ftpcrack(target);
             }
             if (ns.fileExists("relaySMTP.exe", "home")) {
-                ns.relaysmtp(server);
+                ns.relaysmtp(target);
             }
             if (ns.fileExists("HTTPWorm.exe", "home")) {
-                ns.httpworm(server);
+                ns.httpworm(target);
             }
             if (ns.fileExists("SQLInject.exe", "home")) {
-                ns.sqlinject(server);
+                ns.sqlinject(target);
             }
 
         } catch {
-            ns.print(`Could not hack port on ${server}`);
+            ns.print(`Could not hack port on ${target}`);
         }
         try {
-            ns.nuke(server);
+            ns.nuke(target);
         } catch {
-            ns.print(`Could not nuke ${server}`);
+            ns.print(`Could not nuke ${target}`);
         }
     }
 
 
     // Infinite loop that continously hacks/grows/weakens the target server
+
+    /* eslint-disable-next-line no-constant-condition */
     while (true) {
         if (ns.getServerSecurityLevel(target) > securityThresh) {
             // If the server's security level is above our threshold, weaken it
