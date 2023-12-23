@@ -32,46 +32,34 @@ async function hackPorts(ns, serverName) {
             hackedPorts++;
         }
     } catch (err) {
-        ns.print(`Couldn't hack ${serverName} due to port hacking err ${err}`);
+        ns.print(`Couldn't hackports ${serverName} due to port hacking err ${err}`);
     }
     return hackedPorts;
 }
 
 function isRunning(ns, hostname, process_name) {
-    return ns.ps(hostname).map((procs) => procs.filename == process_name).includes(true)
+
+    let res = ns.ps(hostname).map((procs) => procs.filename == process_name).includes(true);
+    // ns.print(`isRunning(${hostname}, ${process_name}) = ${res}`);
+    return res;
 }
 
-async function scpAndRun(ns, serverName) {
+async function scpAndRun(ns, serverName, scriptName, maxProcs, args) {
     if (dontRunScriptsOn.includes(serverName)) {
         return;
     }
-    // var processes = ns.ps(serverName);
-    var skippableBasic = 0;
-    var skippableShare = 0;
-    if (isRunning(ns, serverName, "basichack.js")) {
-        skippableBasic += 1;
+    var procsRunning = 0;
+    if (isRunning(ns, serverName, scriptName)) {
+        procsRunning += 1;
     }
-    if (isRunning(ns, serverName, "share.js")) {
-        skippableShare += 1;
-    }
-    // ns.print(`skippableBasic ${skippableBasic}`);
-    // ns.print(`skippableShare ${skippableShare}`);
 
     try {
-        if (skippableBasic == 0) {
-            ns.scp("basichack.js", serverName, "home");
-            ns.exec("basichack.js", serverName, "1", serverName);
+        if (procsRunning < maxProcs) {
+            ns.scp(scriptName, serverName, "home");
+            ns.exec(scriptName, serverName, "1", args);
         }
     } catch (error) {
-        ns.print(`Failed to exec basichack on ${serverName}: ${error}`);
-    }
-    try {
-        if (skippableShare < 3) {
-            ns.scp("share.js", serverName, "home");
-            ns.exec("share.js", serverName, "1");
-        }
-    } catch (error) {
-        ns.print(`Failed to exec share on ${serverName}: ${error}`);
+        ns.print(`Failed to exec ${serverName} on ${serverName}: ${error}`);
     }
     await ns.asleep(1);
 }
@@ -120,18 +108,14 @@ export async function main(ns) {
             serverList = await spider(foo, serverList);
             let hackedServers = [];
             for (let server of serverList) {
-                if (ns.getServerRequiredHackingLevel(server) > myHackingLevel) {
-                    // ns.print(`Can't hack ${server} yet`);
 
-                }
-                else if (!ns.hasRootAccess(server)) {
+                if (!ns.hasRootAccess(server)) {
                     // ns.print(`hi ${server}`);
                     let serverStats = ns.getServer(server);
                     var hackedPortsNum = 0;
                     if (serverStats.numOpenPortsRequired > 0) {
                         hackedPortsNum = await hackPorts(ns, server);
                     }
-                    ns.print(`This is where we nuke ${server} required: ${serverStats.numOpenPortsRequired} have ${hackedPortsNum}`);
                     if (serverStats.numOpenPortsRequired <= hackedPortsNum) {
                         await ns.asleep(0);
                         try {
@@ -140,11 +124,19 @@ export async function main(ns) {
                             ns.print(`Could not nuke ${server}: ${err}`);
                         }
                     }
-                }
-                else if (server != "home" && server != "darkweb") {
+                } else {
                     hackedServers.push(server);
-                    await scpAndRun(ns, server);
+                    if (!dontRunScriptsOn.includes(server)) {
+                        if (ns.getServerRequiredHackingLevel(server) <= myHackingLevel) {
+                            await scpAndRun(ns, server, "basichack.js", 1, server);
+                        }
+
+                        await scpAndRun(ns, server, "share.js", 3, "");
+                    }
                 }
+
+
+
             }
             ns.print("\n#############################");
             ns.print(new Date().toISOString());
@@ -159,5 +151,4 @@ export async function main(ns) {
         await hackNet(ns);
         await ns.asleep(0);
     }
-
 }
