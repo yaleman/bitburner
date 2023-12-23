@@ -136,6 +136,7 @@ export async function main(ns) {
                     await scpAndRun(ns, server);
                 }
             }
+            ns.print("\n#############################");
             ns.print(new Date().toISOString());
             ns.print(`hacked servers: ${hackedServers.length}`);
             ns.print(`servers: ${serverList.length}`);
