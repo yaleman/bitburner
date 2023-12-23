@@ -103,6 +103,7 @@ export async function hackNet(ns) {
 export async function main(ns) {
   ns.disableLog('ALL');
 
+  /* eslint-disable-next-line no-constant-condition */
   while (true) {
     await hackNet(ns);
     await ns.asleep(100);

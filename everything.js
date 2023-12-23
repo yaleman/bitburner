@@ -102,6 +102,7 @@ export async function main(ns) {
     var serverList = ["home"];
     let foo = ns;
 
+    /* eslint-disable-next-line no-constant-condition */
     while (true) {
         try {
             let myHackingLevel = foo.getPlayer().skills.hacking;

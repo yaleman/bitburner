@@ -1,6 +1,7 @@
 /** @param {NS} ns */
 export async function main(ns) {
-    while (true) {
+    /* eslint-disable-next-line no-constant-condition */
+    while (1 == 1) {
         await ns.share();
     }
 }
