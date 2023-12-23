@@ -1,6 +1,13 @@
 import { hackNet } from "hacknet.js";
 
+const dontRunScriptsOn = [
+    "CSEC",
+    "darkweb",
+    "home"
+];
+
 async function hackPorts(ns, serverName) {
+
     let hackedPorts = 0;
     await ns.asleep(0);
     try {
@@ -16,14 +23,14 @@ async function hackPorts(ns, serverName) {
             ns.relaysmtp(serverName);
             hackedPorts++;
         }
-        // if (ns.fileExists("HTTPWorm.exe")) {
-        //     ns.httpworm(serverName);
-        //     hackedPorts++;
-        // }
-        // if (ns.fileExists("SQLInject.exe", "home")) {
-        //     ns.sqlinject(serverName);
-        //     hackedPorts++;
-        // }
+        if (ns.fileExists("HTTPWorm.exe", "home")) {
+            ns.httpworm(serverName);
+            hackedPorts++;
+        }
+        if (ns.fileExists("SQLInject.exe", "home")) {
+            ns.sqlinject(serverName);
+            hackedPorts++;
+        }
     } catch (err) {
         ns.print(`Couldn't hack ${serverName} due to port hacking err ${err}`);
     }
@@ -35,6 +42,9 @@ function isRunning(ns, hostname, process_name) {
 }
 
 async function scpAndRun(ns, serverName) {
+    if (dontRunScriptsOn.includes(serverName)) {
+        return;
+    }
     // var processes = ns.ps(serverName);
     var skippableBasic = 0;
     var skippableShare = 0;
@@ -141,12 +151,13 @@ export async function main(ns) {
             ns.print(`hacked servers: ${hackedServers.length}`);
             ns.print(`servers: ${serverList.length}`);
             ns.print(`sharepower ${ns.getSharePower()}\n`);
-            await ns.asleep(100);
+            await ns.asleep(10);
         } catch (err) {
             ns.print(`failed!  ${err}`);
-            await ns.asleep(100);
+            await ns.asleep(10);
         }
         await hackNet(ns);
+        await ns.asleep(0);
     }
 
 }
