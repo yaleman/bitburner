@@ -5095,7 +5095,7 @@ export interface NS {
    * // This will count from 1 to 10 in your terminal, with one number every 5 seconds
    * for (var i = 1; i <= 10; i++) {
    *   ns.tprint(i);
-   *   await ns.sleep(5000);
+   *   await ns.asleep(5000);
    * }
    * ```
    * @returns A promise that resolves to true when the sleep is completed.
@@ -6715,7 +6715,7 @@ export interface NS {
    * successfully retrieved from the URL. Because the function is async and returns a Promise,
    * it is recommended you use wget in NetscriptJS (Netscript 2.0).
    *
-   * In NetscriptJS, you must preface any call to wget with the await keyword (like you would {@link NS.hack | hack} or {@link NS.sleep | sleep}).
+   * In NetscriptJS, you must preface any call to wget with the await keyword (like you would {@link NS.hack | hack} or {@link ns.asleep | sleep}).
    * wget will still work in Netscript 1.0, but the function's execution will not be synchronous
    * (i.e. it may not execute when you expect/want it to).
    * Furthermore, since Promises are not supported in ES5,
