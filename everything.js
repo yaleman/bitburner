@@ -8,32 +8,60 @@ const dontRunScriptsOn = [
 
 async function hackPorts(ns, serverName) {
 
+    ns.tprint(`hackports ${serverName}`);
+    let hackPortStats = ns.getServer(serverName);
+    ns.tprint(`got stats hackports ${serverName}`);
     let hackedPorts = 0;
-    await ns.asleep(0);
-    try {
-        if (ns.fileExists("BruteSSH.exe", "home")) {
+    // await ns.asleep(1);
+
+    if (ns.fileExists("BruteSSH.exe", "home") && !hackPortStats.sshPortOpen) {
+        try {
+            ns.tprint(`brutessh ${serverName}`);
             ns.brutessh(serverName);
             hackedPorts++;
+        } catch (err) {
+            ns.tprint(`Couldn't brutessh ${serverName} due to port hacking err ${err}`);
         }
-        if (ns.fileExists("FTPCrack.exe", "home")) {
+    }
+    if (ns.fileExists("FTPCrack.exe", "home") && !hackPortStats.ftpPortOpen) {
+        try {
+            ns.tprint(`ftpcrack ${serverName}`);
             ns.ftpcrack(serverName);
             hackedPorts++;
+        } catch (err) {
+            ns.tprint(`Couldn't ftpcrack ${serverName} due to port hacking err ${err}`);
         }
-        if (ns.fileExists("relaySMTP.exe", "home")) {
-            ns.relaysmtp(serverName);
+    }
+    if (ns.fileExists("relaySMTP.exe", "home") && !hackPortStats.smtpPortOpen) {
+        try {
+            ns.tprint(`relaysmtp ${serverName}`);
+            // ns.relaysmtp(serverName);
             hackedPorts++;
+        } catch (err) {
+            ns.tprint(`Couldn't relaysmtp ${serverName} due to port hacking err ${err}`);
         }
-        if (ns.fileExists("HTTPWorm.exe", "home")) {
+    }
+    if (ns.fileExists("HTTPWorm.exe", "home") && !hackPortStats.httpPortOpen) {
+        try {
+            ns.tprint(`HTTPWorm ${serverName}`);
             ns.httpworm(serverName);
             hackedPorts++;
+        } catch (err) {
+            ns.tprint(`Couldn't httpworm ${serverName} due to port hacking err ${err}`);
         }
-        if (ns.fileExists("SQLInject.exe", "home")) {
+    }
+    if (ns.fileExists("SQLInject.exe", "home") && !hackPortStats.sqlPortOpen) {
+        try {
+            ns.tprint(`sqlinject ${serverName}`);
             ns.sqlinject(serverName);
             hackedPorts++;
+        } catch (err) {
+            ns.tprint(`Couldn't sqlinject ${serverName} due to port hacking err ${err}`);
         }
-    } catch (err) {
-        ns.print(`Couldn't hackports ${serverName} due to port hacking err ${err}`);
     }
+
+    await ns.asleep(0);
+    ns.tprint(`returning from hackports ${serverName} ${hackPortStats}`);
     return hackedPorts;
 }
 
@@ -109,35 +137,38 @@ export async function main(ns) {
             serverList = await spider(foo, serverList);
             let hackedServers = [];
             for (let server of serverList) {
-
                 if (!ns.hasRootAccess(server)) {
-                    // ns.print(`hi ${server}`);
+                    ns.tprint(`need root on ${server}`);
                     let serverStats = ns.getServer(server);
                     var hackedPortsNum = 0;
                     if (serverStats.numOpenPortsRequired > 0) {
+                        ns.tprint(`about to hackports ${server}`);
                         hackedPortsNum = await hackPorts(ns, server);
+                        ns.tprint(`came back from hackports ${server}`);
                     }
                     if (serverStats.numOpenPortsRequired <= hackedPortsNum) {
-                        await ns.asleep(0);
                         try {
+                            ns.tprint(`nuking ${server}`);
                             ns.nuke(server);
                         } catch (err) {
-                            ns.print(`Could not nuke ${server}: ${err}`);
+                            ns.tprint(`Could not nuke ${server}: ${err}`);
                         }
+                        await ns.asleep(0);
+                    } else {
+                        await ns.asleep(0);
+                        // ns.print(`Not nuking ${server} because ${hackedPortsNum} < ${serverStats.numOpenPortsRequired}`);
                     }
-                } else {
+                }
+                else {
                     hackedServers.push(server);
                     if (!dontRunScriptsOn.includes(server)) {
+                        ns.tprint(`should be running scripts on ${server}`);
                         if (ns.getServerRequiredHackingLevel(server) <= myHackingLevel) {
                             await scpAndRun(ns, server, "basichack.js", 1, server);
                         }
-
                         await scpAndRun(ns, server, "share.js", 3, "");
                     }
                 }
-
-
-
             }
             ns.print("\n#############################");
             ns.print(new Date().toISOString());
