@@ -7,10 +7,10 @@ const dontRunScriptsOn = [
 ];
 
 async function hackPorts(ns, serverName) {
-
-    ns.tprint(`hackports ${serverName}`);
+    await ns.sleep(1);
+    // ns.tprint(`hackports ${serverName}`);
     let hackPortStats = ns.getServer(serverName);
-    ns.tprint(`got stats hackports ${serverName}`);
+    // ns.tprint(`got stats hackports ${serverName}`);
     let hackedPorts = 0;
     // await ns.asleep(1);
 
@@ -35,7 +35,7 @@ async function hackPorts(ns, serverName) {
     if (ns.fileExists("relaySMTP.exe", "home") && !hackPortStats.smtpPortOpen) {
         try {
             ns.tprint(`relaysmtp ${serverName}`);
-            // ns.relaysmtp(serverName);
+            ns.relaysmtp(serverName);
             hackedPorts++;
         } catch (err) {
             ns.tprint(`Couldn't relaysmtp ${serverName} due to port hacking err ${err}`);
@@ -61,18 +61,18 @@ async function hackPorts(ns, serverName) {
     }
 
     await ns.asleep(0);
-    ns.tprint(`returning from hackports ${serverName} ${hackPortStats}`);
+    // ns.tprint(`returning from hackports ${serverName} ${hackPortStats}`);
     return hackedPorts;
 }
 
 function isRunning(ns, hostname, process_name) {
-
     let res = ns.ps(hostname).map((procs) => procs.filename == process_name).includes(true);
     // ns.print(`isRunning(${hostname}, ${process_name}) = ${res}`);
     return res;
 }
 
 async function scpAndRun(ns, serverName, scriptName, maxProcs, args) {
+    await ns.sleep(1);
     if (dontRunScriptsOn.includes(serverName)) {
         return;
     }
@@ -93,6 +93,7 @@ async function scpAndRun(ns, serverName, scriptName, maxProcs, args) {
 }
 
 async function spider(ns, serverList) {
+    await ns.sleep(1);
     var newlist = serverList.slice();
     const badnames = ['darkweb', '0', 0, ".", "home"];
 
@@ -132,26 +133,27 @@ export async function main(ns) {
 
     /* eslint-disable-next-line no-constant-condition */
     while (true) {
+        await ns.sleep(1);
         try {
             let myHackingLevel = foo.getPlayer().skills.hacking;
             serverList = await spider(foo, serverList);
             let hackedServers = [];
             for (let server of serverList) {
                 if (!ns.hasRootAccess(server)) {
-                    ns.tprint(`need root on ${server}`);
+                    // ns.tprint(`need root on ${server}`);
                     let serverStats = ns.getServer(server);
                     var hackedPortsNum = 0;
                     if (serverStats.numOpenPortsRequired > 0) {
-                        ns.tprint(`about to hackports ${server}`);
+                        // ns.tprint(`about to hackports ${server}`);
                         hackedPortsNum = await hackPorts(ns, server);
-                        ns.tprint(`came back from hackports ${server}`);
+                        // ns.tprint(`came back from hackports ${server}`);
                     }
                     if (serverStats.numOpenPortsRequired <= hackedPortsNum) {
                         try {
-                            ns.tprint(`nuking ${server}`);
+                            // ns.tprint(`nuking ${server}`);
                             ns.nuke(server);
                         } catch (err) {
-                            ns.tprint(`Could not nuke ${server}: ${err}`);
+                            // ns.tprint(`Could not nuke ${server}: ${err}`);
                         }
                         await ns.asleep(0);
                     } else {
@@ -162,7 +164,7 @@ export async function main(ns) {
                 else {
                     hackedServers.push(server);
                     if (!dontRunScriptsOn.includes(server)) {
-                        ns.tprint(`should be running scripts on ${server}`);
+                        //ns.tprint(`should be running scripts on ${server}`);
                         if (ns.getServerRequiredHackingLevel(server) <= myHackingLevel) {
                             await scpAndRun(ns, server, "basichack.js", 1, server);
                         }
