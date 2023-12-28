@@ -25,6 +25,7 @@ export function getHighestProfit(profits) {
 }
 
 export async function hackNet(ns) {
+  // ns.print("hacknet");
   var leavemoney = 0;
 
   if (ns.args.length == 0) {
@@ -60,7 +61,7 @@ export async function hackNet(ns) {
     if (Object.keys(profits).length > 0) {
       let blah = getHighestProfit(profits);
       if (blah.profit > highestProfit) {
-        ns.print(`node ${node} is ready to upgrade`);
+        ns.tprint(`node ${node} is ready to upgrade`);
         upgradeType = blah.upgrade;
         highestProfit = blah.profit;
         nodeToUpgrade = node;
@@ -80,7 +81,7 @@ export async function hackNet(ns) {
   }
 
   if (upgradeCost > 0 && upgradeCost < ns.hacknet.getPurchaseNodeCost()) {
-    ns.print(`upgrading ${upgradeType} on node #${nodeToUpgrade}`);
+    ns.tprint(`upgrading ${upgradeType} on node #${nodeToUpgrade}`);
     switch (upgradeType) {
       case 'cpu':
         ns.hacknet.upgradeCore(nodeToUpgrade);
@@ -94,9 +95,11 @@ export async function hackNet(ns) {
     }
 
   } else if (currmoney >= ns.hacknet.getPurchaseNodeCost()) {
-    ns.print(`Buying a new node...`);
+    ns.tprint(`Buying a new node...`);
     ns.hacknet.purchaseNode();
   }
+  // await ns.sleep(0);
+  await ns.asleep(100);
 }
 
 /** @param {NS} ns */
@@ -106,6 +109,7 @@ export async function main(ns) {
   /* eslint-disable-next-line no-constant-condition */
   while (true) {
     await hackNet(ns);
-    await ns.asleep(100);
+    await ns.asleep(1);
+
   }
 }
