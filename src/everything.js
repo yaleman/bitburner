@@ -5,15 +5,24 @@ const dontRunScriptsOn = [
     "darkweb",
     "home",
     "avmnite-02h",
-    "I.I.I.I"
+    "I.I.I.I",
+    "microdyne",
+    "applied-energetics",
+    // "infocomm",
+    // "rothman-uni",
+    // "nova-med",
 ];
 
-async function hackPorts(ns, serverName) {
-    await ns.asleep(100);
-    // ns.tprint(`hackports ${serverName}`);
+const badnames = [...dontRunScriptsOn.slice(), 'darkweb', '0', 0, ".", "home",
+    "microdyne"
+];
+
+async function hackPorts(ns, serverName, requiredPorts) {
+    ns.tprint(`hackports ${serverName}`);
+    await ns.asleep(1);
     let hackPortStats = ns.getServer(serverName);
-    // ns.tprint(`got stats hackports ${serverName}`);
     let hackedPorts = 0;
+
 
     if (hackPortStats.sshPortOpen) {
         hackedPorts++;
@@ -26,6 +35,11 @@ async function hackPorts(ns, serverName) {
             ns.tprint(`Couldn't brutessh ${serverName} due to port hacking err ${err}`);
         }
     }
+    if (hackedPorts >= requiredPorts) {
+        ns.tprint(`returning from hackports ${serverName}`);
+        return hackedPorts;
+    }
+
     if (hackPortStats.ftpPortOpen) {
         hackedPorts++;
     } else if (ns.fileExists("FTPCrack.exe", "home")) {
@@ -37,6 +51,11 @@ async function hackPorts(ns, serverName) {
             ns.tprint(`Couldn't ftpcrack ${serverName} due to port hacking err ${err}`);
         }
     }
+    if (hackedPorts >= requiredPorts) {
+        ns.tprint(`returning from hackports ${serverName}`);
+        return hackedPorts;
+    }
+
     if (hackPortStats.smtpPortOpen) {
         hackedPorts++;
     } else if (ns.fileExists("relaySMTP.exe", "home")) {
@@ -48,6 +67,11 @@ async function hackPorts(ns, serverName) {
             ns.tprint(`Couldn't relaysmtp ${serverName} due to port hacking err ${err}`);
         }
     }
+    if (hackedPorts > requiredPorts) {
+        ns.tprint(`returning from hackports ${serverName}`);
+        return hackedPorts;
+    }
+
     if (hackPortStats.httpPortOpen) {
         hackedPorts++;
     } else if (ns.fileExists("HTTPWorm.exe", "home")) {
@@ -59,6 +83,11 @@ async function hackPorts(ns, serverName) {
             ns.tprint(`Couldn't httpworm ${serverName} due to port hacking err ${err}`);
         }
     }
+    if (hackedPorts > requiredPorts) {
+        ns.tprint(`returning from hackports ${serverName}`);
+        return hackedPorts;
+    }
+
     if (hackPortStats.sqlPortOpen) {
         hackedPorts++;
     } else if (ns.fileExists("SQLInject.exe", "home")) {
@@ -70,9 +99,13 @@ async function hackPorts(ns, serverName) {
             ns.tprint(`Couldn't sqlinject ${serverName} due to port hacking err ${err}`);
         }
     }
+    if (hackedPorts >= requiredPorts) {
+        ns.tprint(`returning from hackports ${serverName}`);
+        return hackedPorts;
+    }
+
 
     await ns.asleep(10);
-    // ns.tprint(`returning from hackports ${serverName}`);
     return hackedPorts;
 }
 
@@ -106,27 +139,32 @@ async function scpAndRun(ns, serverName, scriptName, maxProcs, args) {
 }
 
 async function spider(ns, serverList) {
-    await ns.sleep(1);
+    // ns.tprint("spidering", serverList);
+    await ns.asleep(1);
+
     var newlist = serverList.slice();
-    const badnames = ['darkweb', '0', 0, ".", "home"];
 
     try {
         for (var target of serverList) {
+            // ns.tprint(`scanning ${target}`);
             for (var scanTarget of ns.scan(target)) {
                 if (!badnames.includes(scanTarget) && !newlist.includes(scanTarget)) {
                     if (ns.getServer(scanTarget).purchasedByPlayer == false) {
+                        ns.tprint9(`adding ${scanTarget}`);
                         newlist.push(scanTarget);
-
                     }
+                } else {
+                    ns.tprint(`skipping ${scanTarget}`)
                 }
             }
         }
-        await ns.asleep(1);
+        // await ns.asleep(1);
     } catch (err) {
-        ns.print(`spider failed on ${serverList}`);
-        ns.print(err);
-        await ns.asleep(1);
+        ns.tprint("spider failed");
+        ns.tprint(err);
     }
+    await ns.asleep(10);
+    // ns.tprint("returning from spider");
     return [...newlist].sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
 }
 
@@ -146,38 +184,40 @@ export async function main(ns) {
 
     /* eslint-disable-next-line no-constant-condition */
     while (true) {
-        await ns.sleep(1);
+        await ns.asleep(1);
+        // ns.tprint("starting loop");
+
         try {
             let myHackingLevel = foo.getPlayer().skills.hacking;
             serverList = await spider(foo, serverList);
             let hackedServers = [];
             for (let server of serverList) {
+                // ns.tprint(`checking ${server}`)
                 if (!ns.hasRootAccess(server)) {
-                    // ns.tprint(`need root on ${server}`);
+                    ns.tprint(`need root on ${server}`);
                     var serverStats = ns.getServer(server);
                     var hackedPortsNum = 0;
-                    if (serverStats.numOpenPortsRequired > 0) {
-                        hackedPortsNum = await hackPorts(ns, server);
-                    }
-                    // ns.tprint(`${server} ports required ${serverStats.numOpenPortsRequired} have ${hackedPortsNum}`)
+                    // if (serverStats.numOpenPortsRequired > 0) {
+                    //     hackedPortsNum = await hackPorts(ns, server, serverStats.numOpenPortsRequired);
+                    // }
+                    ns.tprint(`${server} ports required ${serverStats.numOpenPortsRequired} have ${hackedPortsNum}`)
                     if (serverStats.numOpenPortsRequired <= hackedPortsNum) {
                         try {
                             ns.tprint(`nuking ${server}`);
+                            await ns.asleep(50);
                             ns.nuke(server);
-                            await ns.asleep(5);
+                            ns.tprint(`successfully nuked ${server}`);
                         } catch (err) {
                             await ns.asleep(5);
                             ns.tprint(`Could not nuke ${server}: ${err}`);
                         }
                     } else {
                         await ns.asleep(1);
-                        // ns.tprint(`Not nuking ${server} because ${hackedPortsNum} < ${serverStats.numOpenPortsRequired}`);
                     }
                 }
                 else {
                     hackedServers.push(server);
                     if (!dontRunScriptsOn.includes(server)) {
-                        // ns.tprint(`should be running scripts on ${server}`);
                         if (ns.getServerRequiredHackingLevel(server) <= myHackingLevel) {
                             await scpAndRun(ns, server, "basichack.js", 1, server);
                         }
@@ -193,10 +233,19 @@ export async function main(ns) {
             await ns.asleep(10);
         } catch (err) {
             ns.print(`failed!  ${err}`);
-            await ns.asleep(10);
+            await ns.asleep(1000);
         }
-        await hackNet(ns);
-        await ns.asleep(10);
+        try {
+            // ns.tprint("Doing hacknet");
+            await hackNet(ns);
+            // ns.tprint("completed hacknet");
+
+        } catch (err) {
+            ns.tprint(`Failed to hacknet: ${err}`)
+        }
+        // await ns.asleep(10);
+        await ns.sleep(10);
+        // ns.tprint("end of loop");
 
     }
 }

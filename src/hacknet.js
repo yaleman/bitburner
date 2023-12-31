@@ -98,7 +98,6 @@ export async function hackNet(ns) {
     ns.tprint(`Buying a new node...`);
     ns.hacknet.purchaseNode();
   }
-  // await ns.sleep(0);
   await ns.asleep(100);
 }
 
