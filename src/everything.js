@@ -1,24 +1,51 @@
 import { hackNet } from "hacknet.js";
 
+const SERVER_FILENAME = "knownservers.txt";
+
 const dontRunScriptsOn = [
     "CSEC",
     "darkweb",
     "home",
     "avmnite-02h",
     "I.I.I.I",
-    "microdyne",
-    "applied-energetics",
-    // "infocomm",
-    // "rothman-uni",
-    // "nova-med",
+    "run4theh111z",
+
 ];
 
-const badnames = [...dontRunScriptsOn.slice(), 'darkweb', '0', 0, ".", "home",
-    "microdyne"
+const badnames = [
+    ...dontRunScriptsOn.slice(),
+    'darkweb',
+    '0',
+    0,
+    ".",
+    "home",
 ];
+
+function writeServerList(ns, serverList, filename) {
+    ns.write(filename, JSON.stringify(serverList), "w");
+}
+
+function readServerList(ns, filename) {
+    ns.tprint(`reading server list from ${filename}`);
+    let filecontents = ns.read(filename);
+    if (filecontents.length == 0) {
+        ns.tprint("got empty file");
+        ns.tprint(`file: ${filecontents}`)
+        return ["home"];
+    }
+
+    try {
+        let res = JSON.parse(filecontents);
+        ns.tprint(`read ${res.length} servers from ${filename}`);
+        return res;
+    } catch (err) {
+        ns.tprint(`failed to read ${filename}: ${err}`);
+        return ["home"];
+    }
+}
 
 async function hackPorts(ns, serverName, requiredPorts) {
-    ns.tprint(`hackports ${serverName}`);
+    // ns.tprint(`hackports ${serverName}`);
     await ns.asleep(1);
     let hackPortStats = ns.getServer(serverName);
     let hackedPorts = 0;
@@ -150,12 +177,13 @@ async function spider(ns, serverList) {
             for (var scanTarget of ns.scan(target)) {
                 if (!badnames.includes(scanTarget) && !newlist.includes(scanTarget)) {
                     if (ns.getServer(scanTarget).purchasedByPlayer == false) {
-                        ns.tprint9(`adding ${scanTarget}`);
+                        ns.tprint(`adding ${scanTarget}`);
                         newlist.push(scanTarget);
                     }
-                } else {
-                    ns.tprint(`skipping ${scanTarget}`)
                 }
+                // else {
+                //     ns.tprint(`skipping ${scanTarget}`)
+                // }
             }
         }
         // await ns.asleep(1);
@@ -180,27 +208,29 @@ export async function main(ns) {
 
     runShareOnHome(ns);
     var serverList = ["home"];
-    let foo = ns;
+
+    serverList = readServerList(ns, SERVER_FILENAME);
 
     /* eslint-disable-next-line no-constant-condition */
     while (true) {
         await ns.asleep(1);
-        // ns.tprint("starting loop");
+
 
         try {
-            let myHackingLevel = foo.getPlayer().skills.hacking;
-            serverList = await spider(foo, serverList);
+            let myHackingLevel = ns.getPlayer().skills.hacking;
+            serverList = await spider(ns, serverList);
             let hackedServers = [];
+            // ns.tprint("hacked servers: " + serverList.length);
             for (let server of serverList) {
                 // ns.tprint(`checking ${server}`)
                 if (!ns.hasRootAccess(server)) {
-                    ns.tprint(`need root on ${server}`);
+                    // ns.tprint(`need root on ${server}`);
                     var serverStats = ns.getServer(server);
                     var hackedPortsNum = 0;
-                    // if (serverStats.numOpenPortsRequired > 0) {
-                    //     hackedPortsNum = await hackPorts(ns, server, serverStats.numOpenPortsRequired);
-                    // }
-                    ns.tprint(`${server} ports required ${serverStats.numOpenPortsRequired} have ${hackedPortsNum}`)
+                    if (serverStats.numOpenPortsRequired > 0) {
+                        hackedPortsNum = await hackPorts(ns, server, serverStats.numOpenPortsRequired);
+                    }
+                    // ns.tprint(`${server} ports required ${serverStats.numOpenPortsRequired} have ${hackedPortsNum}`)
                     if (serverStats.numOpenPortsRequired <= hackedPortsNum) {
                         try {
                             ns.tprint(`nuking ${server}`);
@@ -225,6 +255,8 @@ export async function main(ns) {
                     }
                 }
             }
+            writeServerList(ns, serverList, SERVER_FILENAME);
+
             ns.print("\n#############################");
             ns.print(new Date().toISOString());
             ns.print(`hacked servers: ${hackedServers.length}`);
@@ -244,7 +276,7 @@ export async function main(ns) {
             ns.tprint(`Failed to hacknet: ${err}`)
         }
         // await ns.asleep(10);
-        await ns.sleep(10);
+        await ns.asleep(10);
         // ns.tprint("end of loop");
 
     }
