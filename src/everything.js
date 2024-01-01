@@ -2,6 +2,14 @@ import { hackNet } from "hacknet.js";
 
 const SERVER_FILENAME = "knownservers.txt";
 
+const dontScan = [
+    "CSEC",
+    "darkweb",
+    "avmnite-02h",
+    "I.I.I.I",
+    "run4theh111z",
+];
+
 const dontRunScriptsOn = [
     "CSEC",
     "darkweb",
@@ -143,6 +151,9 @@ function isRunning(ns, hostname, process_name) {
 }
 
 async function scpAndRun(ns, serverName, scriptName, maxProcs, args) {
+    if (dontRunScriptsOn.includes(serverName)) {
+        return;
+    };
     // ns.tprint(`scpandrun ${serverName} ${scriptName}`)
     await ns.asleep(10);
     if (dontRunScriptsOn.includes(serverName)) {
@@ -173,7 +184,9 @@ async function spider(ns, serverList) {
 
     try {
         for (var target of serverList) {
-            // ns.tprint(`scanning ${target}`);
+            if (dontScan.includes(target)) {
+                continue;
+            }
             for (var scanTarget of ns.scan(target)) {
                 if (!badnames.includes(scanTarget) && !newlist.includes(scanTarget)) {
                     if (ns.getServer(scanTarget).purchasedByPlayer == false) {
