@@ -207,11 +207,10 @@ async function spider(ns, serverList) {
                     if (ns.getServer(scanTarget).purchasedByPlayer == false) {
                         ns.tprint(`adding ${scanTarget}`);
                         newlist.push(scanTarget);
+                    } else {
+                        scpAndRun(ns, scanTarget, "share.js", 1000, scanTarget, false);
                     }
                 }
-                // else {
-                //     ns.tprint(`skipping ${scanTarget}`)
-                // }
             }
         }
     } catch (err) {
@@ -298,7 +297,13 @@ export async function main(ns) {
             // ns.print(`timeDiff: ${timeDiff} moneyDeltaRate: ${moneyDeltaRate}`);
             ns.print(`moneyDeltaRate: ${Math.round(moneyDeltaRate, 2)}`);
             if (ns.args.length > 0) {
-                ns.print(`seconds to target: ${Math.round(ns.args[0] / moneyDeltaRate, 0)}`);
+                var targetTime = Math.round(ns.args[0] / moneyDeltaRate, 2);
+                if (targetTime > 3600) {
+                    targetTime = `${Math.round(targetTime / 3600.0, 4)} hours`;
+                } else {
+                    targetTime = `${targetTime} seconds`;
+                }
+                ns.print(`Time to target: ${targetTime}`);
             }
 
             ns.print(`servers: ${hackedServers.length}/${serverList.length}`);
