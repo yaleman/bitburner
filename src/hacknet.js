@@ -35,53 +35,94 @@ export async function hackNet(ns) {
   }
 
   const currmoney = Math.round(ns.getPlayer().money - leavemoney, 0);
-  // ns.print(`have ${currmoney} to spend, leaving ${leavemoney}, args ${ns.args}`)
+  // ns.tprint(`have ${currmoney} to spend, leaving ${leavemoney}, args ${ns.args}`)
+  if (currmoney <= 0) {
+    await ns.asleep(1);
+    return;
+  }
 
-  var highestProfit = 0;
-  var upgradeType = "";
   var nodeToUpgrade = -1;
+  var upgradeType = "";
+  var highestUpgradeValue = 0;
   var upgradeCost = 0;
 
   for (var node = 0; node < ns.hacknet.numNodes(); node++) {
     let stats = ns.hacknet.getNodeStats(node);
 
-    let profits = {};
-    if (ns.hacknet.getLevelUpgradeCost(node) <= currmoney) {
-      profits["level"] = lvlUpProfit(stats);
-    }
-    if (ns.hacknet.getRamUpgradeCost(node) <= currmoney) {
-      profits["ram"] = ramUpProfit(stats);
+
+    let nodeUpgradeValue = 0;
+    let nodeUpgradeType = '';
+
+    let levelUpgradeCost = ns.hacknet.getLevelUpgradeCost(node);
+    let levelUpgradePerDollar = lvlUpProfit(stats) / levelUpgradeCost;
+    if (levelUpgradePerDollar > nodeUpgradeValue && currmoney > levelUpgradeCost) {
+      nodeUpgradeValue = levelUpgradePerDollar;
+      nodeUpgradeType = 'level';
+      upgradeCost = levelUpgradeCost;
     }
 
-    if (ns.hacknet.getCoreUpgradeCost(node) <= currmoney) {
-      profits["cpu"] = cpuUpProfit(stats);
+    let ramUpgradeCost = ns.hacknet.getRamUpgradeCost(node);
+    let ramUpgradePerDollar = ramUpProfit(stats) / ramUpgradeCost;
+    if (ramUpgradePerDollar > nodeUpgradeValue && currmoney > ramUpgradeCost) {
+      nodeUpgradeValue = ramUpgradePerDollar;
+      nodeUpgradeType = 'ram';
+      upgradeCost = ramUpgradeCost;
+    }
+    let coreUpgradeCost = ns.hacknet.getCoreUpgradeCost(node);
+    let coreUpgradePerDollar = cpuUpProfit(stats) / coreUpgradeCost;
+    if (coreUpgradePerDollar > nodeUpgradeValue && currmoney > coreUpgradeCost) {
+      nodeUpgradeValue = coreUpgradePerDollar;
+      nodeUpgradeType = 'cpu';
+      upgradeCost = coreUpgradeCost;
     }
 
-
-    if (Object.keys(profits).length > 0) {
-      let blah = getHighestProfit(profits);
-      if (blah.profit > highestProfit) {
-        ns.tprint(`node ${node} is ready to upgrade`);
-        upgradeType = blah.upgrade;
-        highestProfit = blah.profit;
-        nodeToUpgrade = node;
-        switch (blah.upgrade) {
-          case 'cpu':
-            upgradeCost = ns.hacknet.getCoreUpgradeCost(node);
-            break;
-          case 'level':
-            upgradeCost = ns.hacknet.getLevelUpgradeCost(node);
-            break;
-          case 'ram':
-            upgradeCost = ns.hacknet.getRamUpgradeCost(node);
-            break;
-        }
-      }
+    if (nodeUpgradeValue > highestUpgradeValue) {
+      highestUpgradeValue = nodeUpgradeValue;
+      upgradeType = nodeUpgradeType;
+      nodeToUpgrade = node;
     }
+
+    // if (ns.hacknet.getLevelUpgradeCost(node) <= currmoney) {
+    //   profits["level"] = lvlUpProfit(stats);
+    // }
+    // if (ns.hacknet.getRamUpgradeCost(node) <= currmoney) {
+    //   profits["ram"] = ramUpProfit(stats);
+    // }
+
+    // if (ns.hacknet.getCoreUpgradeCost(node) <= currmoney) {
+    //   profits["cpu"] = cpuUpProfit(stats);
+    // }
+
+    // if (Object.keys(profits).length > 0) {
+    //   let blah = getHighestProfit(profits);
+    //   if (blah.profit > highestProfit) {
+    //     ns.tprint(`node ${node} is ready to upgrade`);
+    //     upgradeType = blah.upgrade;
+    //     highestProfit = blah.profit;
+    //     nodeToUpgrade = node;
+    //     switch (blah.upgrade) {
+    //       case 'cpu':
+    //         upgradeCost = ns.hacknet.getCoreUpgradeCost(node);
+    //         break;
+    //       case 'level':
+    //         upgradeCost = ns.hacknet.getLevelUpgradeCost(node);
+    //         break;
+    //       case 'ram':
+    //         upgradeCost = ns.hacknet.getRamUpgradeCost(node);
+    //         break;
+    //     }
+    //   }
+    // }
   }
 
-  if (upgradeCost > 0 && upgradeCost < ns.hacknet.getPurchaseNodeCost()) {
-    ns.tprint(`upgrading ${upgradeType} on node #${nodeToUpgrade}`);
+  if (ns.hacknet.getPurchaseNodeCost() < upgradeCost && currmoney >= ns.hacknet.getPurchaseNodeCost()) {
+    ns.print(`Buying a new node...`);
+    ns.hacknet.purchaseNode();
+  }
+
+
+  else if (nodeToUpgrade != -1) {
+    ns.print(`upgrading ${upgradeType} on node #${nodeToUpgrade} for ${Math.round(upgradeCost, 2)} node cost ${Math.round(ns.hacknet.getPurchaseNodeCost(), 0)}`);
     switch (upgradeType) {
       case 'cpu':
         ns.hacknet.upgradeCore(nodeToUpgrade);
@@ -94,11 +135,9 @@ export async function hackNet(ns) {
         break;
     }
 
-  } else if (currmoney >= ns.hacknet.getPurchaseNodeCost()) {
-    ns.tprint(`Buying a new node...`);
-    ns.hacknet.purchaseNode();
   }
-  await ns.asleep(100);
+
+  await ns.asleep(1);
 }
 
 /** @param {NS} ns */

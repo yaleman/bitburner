@@ -140,39 +140,54 @@ async function hackPorts(ns, serverName, requiredPorts) {
     }
 
 
-    await ns.asleep(10);
+    await ns.asleep(1);
     return hackedPorts;
 }
 
 function isRunning(ns, hostname, process_name) {
-    let res = ns.ps(hostname).map((procs) => procs.filename == process_name).includes(true);
-    // ns.print(`isRunning(${hostname}, ${process_name}) = ${res}`);
-    return res;
+    // let res = ns.ps(hostname).map((procs) => procs.filename == process_name).includes(true);
+    // return res;
+    return ns.ps(hostname).filter((procs) => procs.filename == process_name).length;
 }
 
-async function scpAndRun(ns, serverName, scriptName, maxProcs, args) {
+function otherScripts(ns, hostname, filenameToRemove) {
+    let processes = ns.ps(hostname);
+    let filenames = processes.map((procs) => procs.filename);
+    let uniqueFilenames = [...new Set(filenames)];
+
+    if (filenameToRemove) {
+        uniqueFilenames = uniqueFilenames.filter((filename) => filename !== filenameToRemove);
+    }
+
+    return uniqueFilenames;
+}
+
+async function scpAndRun(ns, serverName, scriptName, maxProcs, args, killothers) {
     if (dontRunScriptsOn.includes(serverName)) {
         return;
     }
-    // ns.tprint(`scpandrun ${serverName} ${scriptName}`)
-    await ns.asleep(10);
-    if (dontRunScriptsOn.includes(serverName)) {
-        return;
-    }
-    var procsRunning = 0;
-    if (isRunning(ns, serverName, scriptName)) {
-        procsRunning += 1;
-    }
+
+    var procsRunning = isRunning(ns, serverName, scriptName);
 
     try {
         if (procsRunning < maxProcs) {
+            if (killothers) {
+                try {
+                    otherScripts(ns, serverName, scriptName).forEach((scriptToKill) => {
+                        ns.tprint(`killing ${scriptToKill} on ${serverName}`);
+                        ns.killall(serverName, scriptToKill);
+                    });
+                } catch (err) {
+                    ns.tprint(`failed to kill others on ${serverName}: ${err}`);
+                }
+            }
             ns.scp(scriptName, serverName, "home");
             ns.exec(scriptName, serverName, "1", args);
         }
     } catch (error) {
         ns.print(`Failed to exec ${serverName} on ${serverName}: ${error}`);
     }
-    await ns.asleep(10);
+    await ns.asleep(1);
     // ns.tprint(`done scpandrun ${serverName} ${scriptName}`)
 }
 
@@ -199,12 +214,11 @@ async function spider(ns, serverList) {
                 // }
             }
         }
-        // await ns.asleep(1);
     } catch (err) {
         ns.tprint("spider failed");
         ns.tprint(err);
     }
-    await ns.asleep(10);
+    // await ns.asleep(10);
     // ns.tprint("returning from spider");
     return [...newlist].sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
 }
@@ -224,6 +238,9 @@ export async function main(ns) {
 
     serverList = readServerList(ns, SERVER_FILENAME);
 
+
+    var lastUpdate = new Date().getTime();
+    var lastBalance = 0;
     /* eslint-disable-next-line no-constant-condition */
     while (true) {
         await ns.asleep(1);
@@ -247,7 +264,7 @@ export async function main(ns) {
                     if (serverStats.numOpenPortsRequired <= hackedPortsNum) {
                         try {
                             ns.tprint(`nuking ${server}`);
-                            await ns.asleep(50);
+                            await ns.asleep(5);
                             ns.nuke(server);
                             ns.tprint(`successfully nuked ${server}`);
                         } catch (err) {
@@ -262,20 +279,32 @@ export async function main(ns) {
                     hackedServers.push(server);
                     if (!dontRunScriptsOn.includes(server)) {
                         if (ns.getServerRequiredHackingLevel(server) <= myHackingLevel) {
-                            await scpAndRun(ns, server, "basichack.js", 1, server);
+
+                            await scpAndRun(ns, server, "basichack.js", 1, server, true);
                         }
-                        await scpAndRun(ns, server, "share.js", 3, server);
+                        await scpAndRun(ns, server, "share.js", 1000, server, false);
                     }
                 }
             }
             writeServerList(ns, serverList, SERVER_FILENAME);
 
+            let timeDiff = (new Date().getTime() - lastUpdate) / 1000.0;
+            lastUpdate = new Date().getTime();
+
+            let moneyDelta = ns.getPlayer().money - lastBalance;
+            let moneyDeltaRate = moneyDelta / timeDiff;
+            lastBalance = ns.getPlayer().money;
             ns.print("\n#############################");
-            ns.print(new Date().toISOString());
-            ns.print(`hacked servers: ${hackedServers.length}`);
-            ns.print(`servers: ${serverList.length}`);
-            ns.print(`sharepower ${ns.getSharePower()}\n`);
-            await ns.asleep(10);
+            // ns.print(`timeDiff: ${timeDiff} moneyDeltaRate: ${moneyDeltaRate}`);
+            ns.print(`moneyDeltaRate: ${Math.round(moneyDeltaRate, 2)}`);
+            if (ns.args.length > 0) {
+                ns.print(`seconds to target: ${Math.round(ns.args[0] / moneyDeltaRate, 0)}`);
+            }
+
+            ns.print(`servers: ${hackedServers.length}/${serverList.length}`);
+            ns.print(`sharepower +${Math.round((ns.getSharePower() - 1) * 100, 2)}%`);
+            ns.print(`karma: ${Math.round(ns.heart.break(), 1)}`)
+            await ns.asleep(5);
         } catch (err) {
             ns.print(`failed!  ${err}`);
             await ns.asleep(1000);
@@ -288,8 +317,7 @@ export async function main(ns) {
         } catch (err) {
             ns.tprint(`Failed to hacknet: ${err}`)
         }
-        // await ns.asleep(10);
-        await ns.asleep(10);
+        await ns.asleep(5);
         // ns.tprint("end of loop");
 
     }
