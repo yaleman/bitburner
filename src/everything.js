@@ -153,7 +153,7 @@ function isRunning(ns, hostname, process_name) {
 async function scpAndRun(ns, serverName, scriptName, maxProcs, args) {
     if (dontRunScriptsOn.includes(serverName)) {
         return;
-    };
+    }
     // ns.tprint(`scpandrun ${serverName} ${scriptName}`)
     await ns.asleep(10);
     if (dontRunScriptsOn.includes(serverName)) {
