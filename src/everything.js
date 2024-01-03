@@ -303,7 +303,9 @@ export async function main(ns) {
                 } else {
                     targetTime = `${targetTime} seconds`;
                 }
-                ns.print(`Time to target: ${targetTime}`);
+                if (ns.args[0] > ns.getPlayer().money) {
+                    ns.print(`Time to target: ${targetTime} ${Math.round(ns.args[0] - ns.getPlayer().money, 0)}`);
+                }
             }
 
             ns.print(`servers: ${hackedServers.length}/${serverList.length}`);

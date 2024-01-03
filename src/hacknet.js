@@ -37,7 +37,7 @@ export async function hackNet(ns) {
   const currmoney = Math.round(ns.getPlayer().money - leavemoney, 0);
   // ns.tprint(`have ${currmoney} to spend, leaving ${leavemoney}, args ${ns.args}`)
   if (currmoney <= 0) {
-    await ns.asleep(1);
+    await ns.asleep(0);
     return;
   }
 
@@ -135,6 +135,8 @@ export async function hackNet(ns) {
         break;
     }
 
+  } else if (currmoney >= ns.hacknet.getPurchaseNodeCost()) {
+    ns.hacknet.purchaseNode();
   }
 
   await ns.asleep(1);
@@ -148,6 +150,5 @@ export async function main(ns) {
   while (true) {
     await hackNet(ns);
     await ns.asleep(1);
-
   }
 }
