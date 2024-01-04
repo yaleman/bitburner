@@ -3,7 +3,7 @@ const badnames = ['darkweb', '0', 0, ".", "home"];
 async function spider(ns, myTarget, parents, seen) {
     await ns.asleep(1);
     seen.push(myTarget);
-    // ns.print(`target: ${myTarget}`);
+
     for (const spiderTarget of ns.scan(myTarget)) {
         if (badnames.includes(spiderTarget)) {
             continue;
@@ -17,7 +17,7 @@ async function spider(ns, myTarget, parents, seen) {
             }
 
             if (printIt) {
-                ns.tprint(`${parents.join(" -> ")} -> ${spiderTarget}`);
+                ns.tprint(`connect ${parents.join(" ; connect ")} ; connect ${spiderTarget}`);
             }
             let newParents = parents.slice();
             newParents.push(spiderTarget);
