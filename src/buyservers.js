@@ -88,7 +88,7 @@ export async function main(ns) {
         while (true) {
 
             myServers = ns.getPurchasedServers();
-            ns.print("################################################");
+            ns.print("####################################");
             ns.print(`You have ${myServers.length}/${maxServers} servers`);
 
             ns.getPurchasedServers().forEach((server) => {
