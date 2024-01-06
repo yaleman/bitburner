@@ -12,13 +12,19 @@ async function spider(ns, myTarget, parents, seen) {
             var printIt = false;
             if (ns.args.length == 0) {
                 printIt = true;
-            } else if (ns.args[0] == spiderTarget) {
+            } else if (ns.args[0] == spiderTarget || spiderTarget.includes(ns.args[0])) {
                 printIt = true;
             }
 
             if (printIt) {
-                ns.tprint(`connect ${parents.join(" ; connect ")} ; connect ${spiderTarget}`);
+                var outputString = "";
+                parents.forEach((parent) => {
+                    outputString += `connect ${parent} ; `;
+                })
+                outputString += `connect ${spiderTarget};`;
+                ns.tprint(outputString);
             }
+
             let newParents = parents.slice();
             newParents.push(spiderTarget);
             await spider(ns, spiderTarget, newParents, seen.slice())
