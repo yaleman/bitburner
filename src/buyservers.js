@@ -86,6 +86,13 @@ export async function main(ns) {
 
     else if (ns.args[0] === "smartbuy") {
         while (true) {
+            let sharePower = Math.round((ns.getSharePower() - 1) * 100, 0);
+            if (ns.args.length == 2) {
+                ns.print(`Stopping smartbuy at ${ns.args[1]} percent helpage (and max servers), currently at ${sharePower}%`);
+                if (sharePower >= ns.args[1] && ns.getPurchasedServers().length >= ns.getPurchasedServerLimit()) {
+                    return;
+                }
+            }
 
             myServers = ns.getPurchasedServers();
             ns.print("####################################");
