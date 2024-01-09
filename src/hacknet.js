@@ -24,6 +24,18 @@ export function getHighestProfit(profits) {
   };
 }
 
+
+
+function getTotalHacknetProfit(ns) {
+  var hackNodeTotalProfit = 0;
+
+  for (var node = 0; node < ns.hacknet.numNodes(); node++) {
+    let stats = ns.hacknet.getNodeStats(node);
+    hackNodeTotalProfit += stats.totalProduction;
+  }
+  return hackNodeTotalProfit;
+}
+
 export async function hackNet(ns) {
   var boughtsomething = false;
   var leavemoney = 0;
@@ -84,31 +96,38 @@ export async function hackNet(ns) {
   }
 
   if (ns.hacknet.getPurchaseNodeCost() < upgradeCost && currmoney >= ns.hacknet.getPurchaseNodeCost()) {
-    ns.print(`Buying a new node...`);
-    ns.hacknet.purchaseNode();
-    boughtsomething = true;
+    if (ns.hacknet.getPurchaseNodeCost() < getTotalHacknetProfit(ns)) {
+      ns.print(`Buying a new node...`);
+      ns.hacknet.purchaseNode();
+      boughtsomething = true;
+
+    }
   }
+
 
 
   else if (nodeToUpgrade != -1) {
-    ns.print(`upgrading ${upgradeType} on node #${nodeToUpgrade} for ${Math.round(upgradeCost, 2)} node cost ${Math.round(ns.hacknet.getPurchaseNodeCost(), 0)}`);
-    switch (upgradeType) {
-      case 'cpu':
-        ns.hacknet.upgradeCore(nodeToUpgrade);
-        break;
-      case 'level':
-        ns.hacknet.upgradeLevel(nodeToUpgrade);
-        break;
-      case 'ram':
-        ns.hacknet.upgradeRam(nodeToUpgrade);
-        break;
-    }
-    boughtsomething = true;
+    if (upgradeCost < getTotalHacknetProfit(ns)) {
+      ns.print(`upgrading ${upgradeType} on node #${nodeToUpgrade} for ${Math.round(upgradeCost, 2)} node cost ${Math.round(ns.hacknet.getPurchaseNodeCost(), 0)}`);
+      switch (upgradeType) {
+        case 'cpu':
+          ns.hacknet.upgradeCore(nodeToUpgrade);
+          break;
+        case 'level':
+          ns.hacknet.upgradeLevel(nodeToUpgrade);
+          break;
+        case 'ram':
+          ns.hacknet.upgradeRam(nodeToUpgrade);
+          break;
+      }
+      boughtsomething = true;
 
-  } else if (currmoney >= ns.hacknet.getPurchaseNodeCost()) {
-    ns.hacknet.purchaseNode();
-    boughtsomething = true;
+    } else if (currmoney >= ns.hacknet.getPurchaseNodeCost()) {
+      ns.hacknet.purchaseNode();
+      boughtsomething = true;
+    }
   }
+
   await ns.asleep(1);
   return boughtsomething;
 }
