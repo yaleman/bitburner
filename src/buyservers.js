@@ -85,6 +85,7 @@ export async function main(ns) {
     }
 
     else if (ns.args[0] === "smartbuy") {
+        // eslint-disable-next-line no-constant-condition
         while (true) {
             let sharePower = Math.round((ns.getSharePower() - 1) * 100, 0);
             if (ns.args.length == 2) {
