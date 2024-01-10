@@ -27,13 +27,8 @@ export function getHighestProfit(profits) {
 
 
 function getTotalHacknetProfit(ns) {
-  var hackNodeTotalProfit = 0;
-
-  for (var node = 0; node < ns.hacknet.numNodes(); node++) {
-    let stats = ns.hacknet.getNodeStats(node);
-    hackNodeTotalProfit += stats.totalProduction;
-  }
-  return hackNodeTotalProfit;
+  const moneySources = ns.getMoneySources();
+  return (moneySources.hacknet - moneySources.hacknet_expenses);
 }
 
 export async function hackNet(ns) {
@@ -95,8 +90,9 @@ export async function hackNet(ns) {
     }
   }
 
-  if (ns.hacknet.getPurchaseNodeCost() < upgradeCost && currmoney >= ns.hacknet.getPurchaseNodeCost() || getTotalHacknetProfit(ns) == 0) {
-    if (ns.hacknet.getPurchaseNodeCost() < getTotalHacknetProfit(ns)) {
+  if (ns.hacknet.getPurchaseNodeCost() < upgradeCost &&
+    currmoney >= ns.hacknet.getPurchaseNodeCost() || getTotalHacknetProfit(ns) == 0) {
+    if (ns.hacknet.getPurchaseNodeCost() < getTotalHacknetProfit(ns) * 5) {
       ns.print(`Buying a new node...`);
       ns.hacknet.purchaseNode();
       boughtsomething = true;
