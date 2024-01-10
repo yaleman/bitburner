@@ -338,9 +338,19 @@ export async function main(ns) {
             ns.exec("hacknet.js", "home", 1, "--oneshot");
         }
 
-        if (ns.getRunningScript("gang.js", "home", "--oneshot") === null) {
-            ns.exec("gang.js", "home", 1, "--oneshot");
-        }
+        // try {
+        //     if (ns.gang.inGang()) {
+        //         ns.tprint("running gang.js");
+
+        //         if (isRunning(ns, "home", "gang.js") == 0) {
+        //             if (ns.exec("gang.js", "home") == 0) {
+        //                 ns.tprint("failed to run gang.js");
+        //             };
+        //         }
+        //     }
+        // } catch (err) {
+        //     ns.tprint(`failed to run gang.js: ${err}`);
+        // }
         await ns.asleep(5);
         // ns.tprint("end of loop");
 
