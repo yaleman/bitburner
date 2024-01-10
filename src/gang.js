@@ -5,10 +5,10 @@
 
 const minimumAscensionMult = 1.5;
 
-const rnk1 = 98; 	   	// Rank 1 (gives a x2 multiplier)
-const rnk2 = 274; 	// Rank 2 (gives a x4 multiplier, +0.25 rate)
-const rnk3 = 550;   	// Rank 3 (gives x6 multiplier)
-const rnk4 = 934; 	// Rank 4 (x8 multiplier)
+const rnk1 = 98; 	    // Rank 1 (gives a x2 multiplier)
+const rnk2 = 274; 	    // Rank 2 (gives a x4 multiplier, +0.25 rate)
+const rnk3 = 550;       // Rank 3 (gives x6 multiplier)
+const rnk4 = 934; 	    // Rank 4 (x8 multiplier)
 const rnk5 = 56000; 	// Rank 5 (x19 multiplier with mods)
 //let rnk6 = 145111; 	// Rank 6 (x36 multiplier with mods)
 
@@ -17,7 +17,9 @@ const rankNumbers = [
     rnk1, rnk2, rnk3, rnk4, rnk5
 ]
 
-// work out what rank we're at
+/**
+work out what rank we're at for a given skill
+*/
 function getMultiRank(value) {
     let i = 0;
     while (i ** 2 < value) {
@@ -96,19 +98,19 @@ export async function gangTick(ns) {
         let newTask;
 
         if (!needsToLearnThings(ns, memberName, memberIndex)) {
-            if (memberIndex == 0) {
-                // just make the base one always do this, it's faster
+            // if (memberIndex == 0) {
+            // just make the base one always do this, it's faster
+            // newTask = "Vigilante Justice";
+            // } else {
+            // if (gangInfo.wantedLevel > ) {
+            if (Math.abs(gangInfo.wantedPenalty) <= maxWantedPenalty) {
                 newTask = "Vigilante Justice";
-            } else {
-                // if (gangInfo.wantedLevel > ) {
-                if (Math.abs(gangInfo.wantedPenalty) <= maxWantedPenalty) {
-                    newTask = "Vigilante Justice";
-                }
-                else {
-                    newTask = getMyCrime(ns, memberStats);
-                }
-
             }
+            else {
+                newTask = getMyCrime(ns, memberStats);
+            }
+
+            // }
 
             if (memberStats.task != newTask) {
                 // ns.print(`${memberName} moving to ${newTask}`);
@@ -145,9 +147,7 @@ function getMyCrime(ns, memberStats) {
 
 function getMinAscensionMult(ns, memberName, keys) {
     let res = ns.gang.getAscensionResult(memberName)
-
     let minResult = 0.0;
-
     if (res == null) {
         return minResult;
     }
@@ -159,10 +159,7 @@ function getMinAscensionMult(ns, memberName, keys) {
             }
         }
     });
-
     return minResult;
-
-
 }
 
 
