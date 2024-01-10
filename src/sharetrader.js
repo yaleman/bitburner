@@ -105,6 +105,7 @@ async function sell(ns, stock, numShares) {
 export async function main(ns) {
     //Initialise
     ns.disableLog("ALL");
+    //eslint-disable-next-line no-constant-condition
     while (true) {
 
         if (!ns.stock.hasTIXAPIAccess()) {
