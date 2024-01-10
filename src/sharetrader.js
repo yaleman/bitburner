@@ -105,50 +105,70 @@ async function sell(ns, stock, numShares) {
 export async function main(ns) {
     //Initialise
     ns.disableLog("ALL");
-    let loaddata = readShareData(ns, SHAREDATA);
-
-    let stocks = [];
-    if (loaddata.stocks.length == 0) {
-        stocks = [...ns.stock.getSymbols().map(_sym => { return { sym: _sym } })];
-    } else {
-        stocks = loaddata.stocks;
-
-    }
-
-
-    let myStocks = [];
-    let corpus = 0;
-
-    // eslint-disable-next-line no-constant-condition
     while (true) {
-        corpus = refresh(ns, stocks, myStocks);
-        //Symbol, Initial Return, Current Return, The % change between
-        // the Initial Return and the Current Return.
-        ns.print("Currently Owned Stocks:")
-        ns.print("SYM | InitReturn -> CurReturn | % change")
-        //Sell underperforming shares
-        for (let i = 0; i < myStocks.length; i++) {
-            if (pChange(ns, myStocks[i].sym, myStocks[i].initExpRet, myStocks[i].expRet) <= expRetLossToSell)
-                await sell(ns, myStocks[i], myStocks[i].shares);
 
-            if (myStocks[i].expRet <= 0)
-                await sell(ns, myStocks[i], myStocks[i].shares);
-
-            corpus -= commission;
+        if (!ns.stock.hasTIXAPIAccess()) {
+            ns.print("Waiting for TIX API access and 4S Market Data...");
+            await ns.asleep(5000);
+            continue;
         }
-        ns.print("----------------------------------------")
-
-        //Buy shares with cash remaining in hand
-        for (let stock of stocks) {
-            if (stock.shares > 0) continue;
-            if (stock.expRet <= 0) continue;
-            let cashToSpend = ns.getServerMoneyAvailable("home") - (fracH * corpus);
-            let numShares = Math.floor((cashToSpend - commission) / stock.price);
-            if ((numShares * stock.expRet * stock.price * numCycles) > commission)
-                await buy(ns, stock, numShares);
-            break;
+        if (!ns.stock.has4SData()) {
+            ns.print("Waiting for 4S Market Data...");
+            await ns.asleep(5000);
+            continue;
+        }
+        if (!ns.stock.has4SDataTIXAPI()) {
+            ns.print("Waiting for 4S Market Data TIX API...");
+            await ns.asleep(5000);
+            continue;
         }
 
-        await ns.sleep(5 * 1000 * numCycles + 200);
+
+        let loaddata = readShareData(ns, SHAREDATA);
+
+        let stocks = [];
+        if (loaddata.stocks.length == 0) {
+            stocks = [...ns.stock.getSymbols().map(_sym => { return { sym: _sym } })];
+        } else {
+            stocks = loaddata.stocks;
+
+        }
+
+
+        let myStocks = [];
+        let corpus = 0;
+
+        // eslint-disable-next-line no-constant-condition
+        while (true) {
+            corpus = refresh(ns, stocks, myStocks);
+            //Symbol, Initial Return, Current Return, The % change between
+            // the Initial Return and the Current Return.
+            ns.print("Currently Owned Stocks:")
+            ns.print("SYM | InitReturn -> CurReturn | % change")
+            //Sell underperforming shares
+            for (let i = 0; i < myStocks.length; i++) {
+                if (pChange(ns, myStocks[i].sym, myStocks[i].initExpRet, myStocks[i].expRet) <= expRetLossToSell)
+                    await sell(ns, myStocks[i], myStocks[i].shares);
+
+                if (myStocks[i].expRet <= 0)
+                    await sell(ns, myStocks[i], myStocks[i].shares);
+
+                corpus -= commission;
+            }
+            ns.print("----------------------------------------")
+
+            //Buy shares with cash remaining in hand
+            for (let stock of stocks) {
+                if (stock.shares > 0) continue;
+                if (stock.expRet <= 0) continue;
+                let cashToSpend = ns.getServerMoneyAvailable("home") - (fracH * corpus);
+                let numShares = Math.floor((cashToSpend - commission) / stock.price);
+                if ((numShares * stock.expRet * stock.price * numCycles) > commission)
+                    await buy(ns, stock, numShares);
+                break;
+            }
+
+            await ns.sleep(5 * 1000 * numCycles + 200);
+        }
     }
 }
