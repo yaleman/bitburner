@@ -1,6 +1,9 @@
 /// does gang things
 
-const minimumAscensionMult = 2.0;
+// const importantStat = ns.gang.getGangInformation().isHacking ? "hack" : "str"
+
+
+const minimumAscensionMult = 1.5;
 
 const rnk1 = 98; 	   	// Rank 1 (gives a x2 multiplier)
 const rnk2 = 274; 	// Rank 2 (gives a x4 multiplier, +0.25 rate)
@@ -14,27 +17,42 @@ const rankNumbers = [
     rnk1, rnk2, rnk3, rnk4, rnk5
 ]
 
-function getMinStats(memberIndex) {
+// work out what rank we're at
+function getMultiRank(value) {
+    let i = 0;
+    while (i ** 2 < value) {
+        i++;
+    }
+
+    return i - 1;
+}
+
+function getMinStats(ns, memberName, memberIndex) {
+    const memberStats = ns.gang.getMemberInformation(memberName);
+
     if (memberIndex >= rankNumbers.length) {
         memberIndex = rankNumbers.length - 1;
     }
 
+
     let minStats = {
-        hack: { minValue: 1, taskName: "Train Hacking" },
-        cha: { minValue: 1, taskName: "Train Charisma" },
-        str: { minValue: rankNumbers[memberIndex], taskName: "Train Combat" },
-        def: { minValue: rankNumbers[memberIndex], taskName: "Train Combat" },
-        dex: { minValue: rankNumbers[memberIndex], taskName: "Train Combat" },
-        agi: { minValue: rankNumbers[memberIndex], taskName: "Train Combat" },
+        // hack: { minValue: rankNumbers[getMultiRank(memberStats[`hack_asc_mult`])], taskName: "Train Hacking" },
+        hack: { minValue: 10, taskName: "Train Hacking" },
+        // cha: { minValue: rankNumbers[getMultiRank(memberStats[`cha_asc_mult`])], taskName: "Train Charisma" },
+        cha: { minValue: 10, taskName: "Train Charisma" },
+        str: { minValue: rankNumbers[getMultiRank(memberStats[`str_asc_mult`])], taskName: "Train Combat" },
+        def: { minValue: rankNumbers[getMultiRank(memberStats[`def_asc_mult`])], taskName: "Train Combat" },
+        dex: { minValue: rankNumbers[getMultiRank(memberStats[`dex_asc_mult`])], taskName: "Train Combat" },
+        agi: { minValue: rankNumbers[getMultiRank(memberStats[`agi_asc_mult`])], taskName: "Train Combat" },
     };
     return minStats;
 }
 
 
 /** @param {NS} ns */
-function checkUpgrade(ns, memberName, memberIndex) {
+function needsToLearnThings(ns, memberName, memberIndex) {
     let memberStats = ns.gang.getMemberInformation(memberName);
-    let myMinStats = getMinStats(memberIndex);
+    let myMinStats = getMinStats(ns, memberName, memberIndex);
 
     for (const stat of Object.keys(myMinStats)) {
         if (memberStats[stat] < myMinStats[stat].minValue) {
@@ -54,47 +72,52 @@ function checkUpgrade(ns, memberName, memberIndex) {
 export async function gangTick(ns) {
     let gangInfo = ns.gang.getGangInformation();
     let memberNames = ns.gang.getMemberNames();
-    // ns.tprint(gangInfo);
     const maxWantedPenalty = 0.8;
-    // let wantedGainRate = gangInfo.wantedLevelGainRate;
-    // let vigilantes = 0;
 
+    // ns.tprint(gangInfo);
+    //
+    // ns.print(`${Math.abs(gangInfo.wantedPenalty)} <= ${maxWantedPenalty} == ${Math.abs(gangInfo.wantedPenalty) <= maxWantedPenalty}`);
     for (let memberIndex = 0; memberIndex < memberNames.length; memberIndex++) {
         let memberName = memberNames[memberIndex];
-        // ns.tprint(`Checking ${memberName}`);
+
+        // ns.tprint(`Lowest combat stat for ${memberName} is ${getLowestCombatSkill(ns, memberName)}`);
 
         if (getMinAscensionMult(ns, memberName, ['str', 'def', 'dex', 'agi']) > minimumAscensionMult) {
             if (ns.gang.ascendMember(memberName)) {
-                ns.tprint(`${memberName} ascended`);
+                ns.print(`${memberName} ascended`);
                 continue;
             } else {
-                ns.tprint(`failed to ascend ${memberName}`);
+                ns.print(`failed to ascend ${memberName}`);
             }
         }
-
-        // memberNames.forEach((memberName) => {
         let memberStats = ns.gang.getMemberInformation(memberName);
+
+        buyGear(ns, memberName);
         let newTask;
 
-        if (!checkUpgrade(ns, memberName, memberIndex)) {
-            if (gangInfo.wantedPenalty <= maxWantedPenalty) {
+        if (!needsToLearnThings(ns, memberName, memberIndex)) {
+            if (memberIndex == 0) {
+                // just make the base one always do this, it's faster
                 newTask = "Vigilante Justice";
-                // vigilantes += 1;
-            }
-            else {
-                newTask = getMyCrime(ns, memberStats);
+            } else {
+                // if (gangInfo.wantedLevel > ) {
+                if (Math.abs(gangInfo.wantedPenalty) <= maxWantedPenalty) {
+                    newTask = "Vigilante Justice";
+                }
+                else {
+                    newTask = getMyCrime(ns, memberStats);
+                }
+
             }
 
             if (memberStats.task != newTask) {
-                ns.tprint(`${memberName} moving to ${newTask}`);
+                // ns.print(`${memberName} moving to ${newTask}`);
                 ns.gang.setMemberTask(memberName, newTask);
             }
-        } else {
-            // ns.tprint(`${memberName} is upgrading`);
-        }
-    }
 
-    // ns.tprint(`vigilantes: ${vigilantes} - wantedPenalty: ${gangInfo.wantedPenalty.toFixed(3)} - wantedGainRate: ${wantedGainRate.toFixed(3)}`);
+        }
+
+    }
 
     if (ns.gang.canRecruitMember()) {
         let newName = `member${String(memberNames.length).padStart(3, '0')}`;
@@ -108,11 +131,13 @@ export async function gangTick(ns) {
 
 function getMyCrime(ns, memberStats) {
     // ns.tprint(ns.gang.getTaskStats("Traffick Illegal Arms"));
-    if (memberStats.str >= rnk2) {
+    if (memberStats.str >= rnk3) {
+        return "Human Trafficking";
+    } else if (memberStats.str >= rnk2) {
         return "Traffick Illegal Arms";
     } else if (memberStats.str >= rnk1) {
         return "Armed Robbery"
-    } else if (memberStats.str > 50) {
+    } else if (memberStats.str > rnk1 / 2) {
         return "Strongarm Civilians";
     }
     return "Mug People";
@@ -169,6 +194,31 @@ function getMinAscensionMult(ns, memberName, keys) {
 // }
 
 
+function buyGear(ns, memberName) {
+    ns.gang.getEquipmentNames().map((equipName) => {
+        let equipType = ns.gang.getEquipmentType(equipName);
+        if (!["Weapon", "Armor", "Vehicle"].includes(equipType)) {
+            return;
+        }
+        // let equipStats = ns.gang.getEquipmentStats(equipName);
+        if (!ns.gang.getMemberInformation(memberName).upgrades.includes(equipName)) {
+            let equipCost = ns.gang.getEquipmentCost(equipName).toFixed(0);
+            if (equipCost < ns.getPlayer().money) {
+                ns.print(`buying ${equipName} for ${memberName} $${equipCost}`);
+                ns.gang.purchaseEquipment(memberName, equipName)
+            }
+
+        } else {
+            // ns.tprint(`${memberName} already has ${equipName}`);
+        }
+    });
+}
+
+// function getLowestCombatSkill(ns, memberName) {
+//     let memberStats = ns.gang.getMemberInformation(memberName);
+//     return Math.min(memberStats.str, memberStats.def, memberStats.dex, memberStats.agi);
+// }
+
 /** @param {NS} ns */
 export async function main(ns) {
     ns.disableLog('ALL');
@@ -181,6 +231,7 @@ export async function main(ns) {
     // eslint-disable-next-line no-constant-condition
     while (true) {
         await gangTick(ns);
+
 
         // TODO: implement rolling average of checking the wanted level and ensure it's trending down towards the thingie
         // while (wantedTrend.length >= rollingAverageNumber) {
@@ -197,6 +248,7 @@ export async function main(ns) {
             ns.tprint("Finishing oneshot gang.js");
             break;
         }
-        await ns.gang.nextUpdate();
+        // await ns.gang.nextUpdate();
+        await ns.asleep(1000);
     }
 }
