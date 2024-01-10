@@ -31,6 +31,7 @@ export async function main(ns) {
     // ns.tprint(`profit/sec: ${hackNodeProfitSec} across ${ns.hacknet.numNodes()} nodes`);
     let allState = "mugging";
 
+    //eslint-disable-next-line no-constant-condition
     while (true) {
         let gangInfo = ns.gang.getGangInformation();
 

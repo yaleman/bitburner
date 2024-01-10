@@ -139,9 +139,12 @@ export async function main(ns) {
   /* eslint-disable-next-line no-constant-condition */
   while (true) {
     let boughtsomething = await hackNet(ns);
-    if (ns.args.includes("--oneshot") && boughtsomething == false) {
+    if (ns.args.includes("--oneshot")) {
+      return;
+    }
+    if (ns.args.includes("--buyonce") && boughtsomething == false) {
       ns.tprint("Oneshot mode, nothing to buy, exiting");
-      return
+      return;
     }
     await ns.asleep(1);
   }

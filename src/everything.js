@@ -1,4 +1,4 @@
-import { hackNet } from "hacknet.js";
+// import { hackNet } from "hacknet.js";
 
 const SERVER_FILENAME = "knownservers.txt";
 
@@ -230,11 +230,11 @@ async function spider(ns, serverList) {
     return [...newlist].sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
 }
 
-function runShareOnHome(ns) {
-    if (!isRunning(ns, "home", "share.js")) {
-        ns.exec("share.js", "home", 4);
-    }
-}
+// function runShareOnHome(ns) {
+//     if (!isRunning(ns, "home", "share.js")) {
+//         ns.exec("share.js", "home", 4);
+//     }
+// }
 
 /** @param {NS} ns */
 export async function main(ns) {
@@ -333,13 +333,13 @@ export async function main(ns) {
             ns.print(`failed!  ${err}`);
             await ns.asleep(1000);
         }
-        try {
-            // ns.tprint("Doing hacknet");
-            await hackNet(ns);
-            // ns.tprint("completed hacknet");
 
-        } catch (err) {
-            ns.tprint(`Failed to hacknet: ${err}`)
+        if (ns.getRunningScript("hacknet.js", "home", "--oneshot") === null) {
+            ns.exec("hacknet.js", "home", 1, "--oneshot");
+        }
+
+        if (ns.getRunningScript("gang.js", "home", "--oneshot") === null) {
+            ns.exec("gang.js", "home", 1, "--oneshot");
         }
         await ns.asleep(5);
         // ns.tprint("end of loop");
