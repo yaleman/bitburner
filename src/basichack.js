@@ -8,7 +8,9 @@ export async function main(ns) {
     // Defines the "target server", which is the server
     // that we're going to hack.
     const target = ns.args[0];
-
+    if (!ns.serverExists(target)) {
+        ns.tprint(`from: ${ns.getHostName()} - ${target} does not exist!`);
+    }
 
     if (!ns.hasRootAccess(target)) {
         // If we have the BruteSSH.exe program, use it to open the SSH Port

@@ -95,7 +95,7 @@ export async function hackNet(ns) {
     }
   }
 
-  if (ns.hacknet.getPurchaseNodeCost() < upgradeCost && currmoney >= ns.hacknet.getPurchaseNodeCost()) {
+  if (ns.hacknet.getPurchaseNodeCost() < upgradeCost && currmoney >= ns.hacknet.getPurchaseNodeCost() || getTotalHacknetProfit(ns) == 0) {
     if (ns.hacknet.getPurchaseNodeCost() < getTotalHacknetProfit(ns)) {
       ns.print(`Buying a new node...`);
       ns.hacknet.purchaseNode();

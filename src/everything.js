@@ -199,10 +199,18 @@ async function spider(ns, serverList) {
 
     try {
         for (var target of serverList) {
+
             if (dontScan.includes(target)) {
                 continue;
             }
-            for (var scanTarget of ns.scan(target)) {
+            let scanResults;
+            try {
+                scanResults = ns.scan(target);
+            } catch {
+                continue;
+            }
+
+            for (var scanTarget of scanResults) {
                 if (!badnames.includes(scanTarget) && !newlist.includes(scanTarget)) {
                     if (ns.getServer(scanTarget).purchasedByPlayer == false) {
                         ns.tprint(`adding ${scanTarget}`);
@@ -232,7 +240,7 @@ function runShareOnHome(ns) {
 export async function main(ns) {
     ns.disableLog('ALL');
 
-    runShareOnHome(ns);
+    // runShareOnHome(ns);
     var serverList = ["home"];
 
     serverList = readServerList(ns, SERVER_FILENAME);
@@ -251,8 +259,17 @@ export async function main(ns) {
             let hackedServers = [];
             // ns.tprint("hacked servers: " + serverList.length);
             for (let server of serverList) {
-                // ns.tprint(`checking ${server}`)
-                if (!ns.hasRootAccess(server)) {
+                if (!ns.serverExists(server)) {
+                    continue;
+                }
+                let rootonserver;
+                try {
+                    rootonserver = ns.hasRootAccess(server);
+                } catch {
+                    continue;
+                }
+
+                if (!rootonserver) {
                     // ns.tprint(`need root on ${server}`);
                     var serverStats = ns.getServer(server);
                     var hackedPortsNum = 0;
