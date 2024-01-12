@@ -26,23 +26,34 @@ export function getHighestProfit(profits) {
 
 
 
-function getTotalHacknetProfit(ns) {
-  const moneySources = ns.getMoneySources();
-  return (moneySources.hacknet - moneySources.hacknet_expenses);
+export function getTotalHacknetProfit(ns) {
+  let moneySources = ns.getMoneySources();
+  let expenses = moneySources.sinceInstall.hacknet_expenses;
+  if (expenses < 20e6) {
+    expenses = 0;
+  }
+  let res = (moneySources.sinceInstall.hacknet - expenses);
+  return res;
 }
+export function isValidNumber(input) {
+  const num = parseFloat(input);
+  return !isNaN(num) && typeof num === 'number';
+}
+
 
 export async function hackNet(ns) {
   var boughtsomething = false;
   var leavemoney = 0;
 
-  if (ns.args.length == 0) {
-    leavemoney = Math.round(ns.getPlayer().money * 0.5, 0);
+  if (!isValidNumber(ns.args[0])) {
+    leavemoney = Math.round(ns.getPlayer().money * 0.5);
   } else {
-    leavemoney = ns.args[0];
+    // ns.tprint("Using input arg");
+    leavemoney = parseFloat(ns.args[0]);
   }
 
-  const currmoney = Math.round(ns.getPlayer().money - leavemoney, 0);
-  // ns.tprint(`have ${currmoney} to spend, leaving ${leavemoney}, args ${ns.args}`)
+  let currmoney = Number(ns.getPlayer().money) - Number(leavemoney);
+  // ns.tprint(`have ${currmoney.toLocaleString()} to spend, orig ${Math.round(ns.getPlayer().money).toLocaleString()} leaving ${leavemoney.toLocaleString()}`)
 
   if (currmoney <= 0) {
     await ns.asleep(0);
@@ -90,21 +101,20 @@ export async function hackNet(ns) {
     }
   }
 
-  if (ns.hacknet.getPurchaseNodeCost() < upgradeCost &&
-    currmoney >= ns.hacknet.getPurchaseNodeCost() || getTotalHacknetProfit(ns) == 0) {
-    if (ns.hacknet.getPurchaseNodeCost() < getTotalHacknetProfit(ns) * 5) {
+  if ( /*(ns.hacknet.getPurchaseNodeCost() < upgradeCost) &&*/
+    currmoney >= ns.hacknet.getPurchaseNodeCost()) {
+    // under 10 nodes they're real cheap
+    if (ns.hacknet.numNodes() < 10 || ns.hacknet.getPurchaseNodeCost() < getTotalHacknetProfit(ns)) {
       ns.print(`Buying a new node...`);
       ns.hacknet.purchaseNode();
       boughtsomething = true;
-
     }
   }
 
-
-
   else if (nodeToUpgrade != -1) {
-    if (upgradeCost < getTotalHacknetProfit(ns)) {
-      ns.print(`upgrading ${upgradeType} on node #${nodeToUpgrade} for ${Math.round(upgradeCost, 2)} node cost ${Math.round(ns.hacknet.getPurchaseNodeCost(), 0)}`);
+    // ns.tprint(`Want to upgrade ${nodeToUpgrade} ${upgradeType} for ${Math.round(upgradeCost)}`);
+    if (upgradeCost <= 10e6 || upgradeCost < getTotalHacknetProfit(ns) * 2) {
+      ns.print(`upgrading ${upgradeType} on node #${nodeToUpgrade.toLocaleString()} for ${Math.round(upgradeCost, 2).toLocaleString()} `); // node cost ${Math.round(ns.hacknet.getPurchaseNodeCost(), 0).toLocaleString()}
       switch (upgradeType) {
         case 'cpu':
           ns.hacknet.upgradeCore(nodeToUpgrade);
