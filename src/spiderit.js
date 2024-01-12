@@ -8,7 +8,7 @@ async function spider(ns, myTarget, parents, seen) {
         if (badnames.includes(spiderTarget)) {
             continue;
         }
-        if (!seen.includes(spiderTarget) && !parents.includes(spiderTarget)) {
+        if (!seen.includes(spiderTarget)) {
             var printIt = false;
             if (ns.args.length == 0) {
                 printIt = true;
@@ -38,14 +38,7 @@ export async function main(ns) {
 
     ns.disableLog('ALL');
     var seen = [];
-    for (var target of ns.scan("home")) {
-        if (badnames.includes(target)) {
-            continue;
-        }
-        // ns.print(`spidering ${target}`);
-        await spider(ns, target, ["home"], seen);
-
-    }
+    await spider(ns, "home", [], seen)
 
 
 }
