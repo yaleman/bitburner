@@ -17,6 +17,11 @@ export function otherScripts(ns, hostname, filenameToRemove) {
 }
 
 export async function scpAndRun(ns, serverName, scriptName, maxProcs, args, killothers, dontRunScriptsOn) {
+    if (dontRunScriptsOn === undefined) {
+        ns.tprint("scpAndRun called with undefined dontRunScriptsOn");
+        return;
+    }
+
     if (dontRunScriptsOn.includes(serverName)) {
         return;
     }

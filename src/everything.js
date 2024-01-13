@@ -89,91 +89,91 @@ export async function main(ns) {
         // await ns.asleep(1);
 
 
-        try {
-            let myHackingLevel = ns.getPlayer().skills.hacking;
-            serverList = await spider(ns, serverList);
-            let hackedServers = [];
-            // ns.tprint("hacked servers: " + serverList.length);
-            for (let server of serverList) {
-                if (!ns.serverExists(server)) {
-                    continue;
-                }
-                let rootonserver;
-                try {
-                    rootonserver = ns.hasRootAccess(server);
-                } catch {
-                    continue;
-                }
-
-                let serverStats = ns.getServer(server);
-                if (!rootonserver) {
-                    // ns.tprint(`need root on ${server}`);
-                    var hackedPortsNum = 0;
-                    if (serverStats.numOpenPortsRequired > 0) {
-                        hackedPortsNum = await hackPorts(ns, server);
-                    }
-                    // ns.tprint(`${server} ports required ${serverStats.numOpenPortsRequired} have ${hackedPortsNum}`)
-                    if (serverStats.numOpenPortsRequired <= hackedPortsNum) {
-                        try {
-                            ns.tprint(`nuking ${server}`);
-                            await ns.asleep(5);
-                            ns.nuke(server);
-                            ns.tprint(`successfully nuked ${server}`);
-                        } catch (err) {
-                            await ns.asleep(5);
-                            ns.tprint(`Could not nuke ${server}: ${err}`);
-                        }
-                    } else {
-                        await ns.asleep(1);
-                    }
-                }
-                else {
-                    hackedServers.push(server);
-                    if (!dontRunScriptsOn.includes(server)) {
-                        if (ns.getServerRequiredHackingLevel(server) <= myHackingLevel) {
-
-                            await scpAndRun(ns, server, "basichack.js", 1, server, true);
-                        }
-                        await scpAndRun(ns, server, "share.js", 1000, server, false);
-                    }
-                }
+        // try {
+        let myHackingLevel = ns.getPlayer().skills.hacking;
+        serverList = await spider(ns, serverList);
+        let hackedServers = [];
+        // ns.tprint("hacked servers: " + serverList.length);
+        for (let server of serverList) {
+            if (!ns.serverExists(server)) {
+                continue;
             }
-            writeServerList(ns, serverList, SERVER_FILENAME);
+            let rootonserver;
+            try {
+                rootonserver = ns.hasRootAccess(server);
+            } catch {
+                continue;
+            }
 
-            let timeDiff = (new Date().getTime() - lastUpdate) / 1000.0;
-            lastUpdate = new Date().getTime();
-
-            let moneyDelta = ns.getPlayer().money - lastBalance;
-            let moneyDeltaRate = moneyDelta / timeDiff;
-            lastBalance = ns.getPlayer().money;
-            ns.print("\n#############################");
-            // ns.print(`timeDiff: ${timeDiff} moneyDeltaRate: ${moneyDeltaRate}`);
-            ns.print(`moneyDeltaRate: ${Math.round(moneyDeltaRate, 2)}`);
-            if (ns.args.length > 0) {
-                var targetTime = Math.round(ns.args[0] / moneyDeltaRate, 2);
-                if (targetTime > 3600) {
-                    targetTime = `${Math.round(targetTime / 3600.0, 4)} hours`;
+            let serverStats = ns.getServer(server);
+            if (!rootonserver) {
+                // ns.tprint(`need root on ${server}`);
+                var hackedPortsNum = 0;
+                if (serverStats.numOpenPortsRequired > 0) {
+                    hackedPortsNum = await hackPorts(ns, server);
+                }
+                // ns.tprint(`${server} ports required ${serverStats.numOpenPortsRequired} have ${hackedPortsNum}`)
+                if (serverStats.numOpenPortsRequired <= hackedPortsNum) {
+                    try {
+                        ns.tprint(`nuking ${server}`);
+                        await ns.asleep(5);
+                        ns.nuke(server);
+                        ns.tprint(`successfully nuked ${server}`);
+                    } catch (err) {
+                        await ns.asleep(5);
+                        ns.tprint(`Could not nuke ${server}: ${err}`);
+                    }
                 } else {
-                    targetTime = `${targetTime} seconds`;
-                }
-                if (ns.args[0] > ns.getPlayer().money) {
-                    ns.print(`Time to target: ${targetTime} ${Math.round(ns.args[0] - ns.getPlayer().money, 0)}`);
+                    await ns.asleep(1);
                 }
             }
+            else {
+                hackedServers.push(server);
+                if (!dontRunScriptsOn.includes(server)) {
+                    if (ns.getServerRequiredHackingLevel(server) <= myHackingLevel) {
 
-            ns.print(`servers: ${hackedServers.length}/${serverList.length}`);
-            ns.print(`sharepower +${Math.round((ns.getSharePower() - 1) * 100, 2)}%`);
-            ns.print(`karma: ${Math.round(ns.heart.break(), 1)}`)
-            let moneySources = ns.getMoneySources().sinceInstall;
-            let hacknetIncome = Math.round(moneySources.hacknet);
-            let hacknetExpenses = Math.round(moneySources.hacknet_expenses);
-            let hacknetTotal = (hacknetIncome + hacknetExpenses).toLocaleString();
-            ns.print(`Hacknet Profit: ${hacknetTotal} (${hacknetIncome.toLocaleString()} ${hacknetExpenses.toLocaleString()})`);
-            await ns.asleep(5);
-        } catch (err) {
-            ns.print(`failed!  ${err}`);
-            await ns.asleep(1000);
+                        await scpAndRun(ns, server, "basichack.js", 1, server, true, dontRunScriptsOn);
+                    }
+                    await scpAndRun(ns, server, "share.js", 1000, server, false, dontRunScriptsOn);
+                }
+            }
         }
+        writeServerList(ns, serverList, SERVER_FILENAME);
+
+        let timeDiff = (new Date().getTime() - lastUpdate) / 1000.0;
+        lastUpdate = new Date().getTime();
+
+        let moneyDelta = ns.getPlayer().money - lastBalance;
+        let moneyDeltaRate = moneyDelta / timeDiff;
+        lastBalance = ns.getPlayer().money;
+        ns.print("\n#############################");
+        // ns.print(`timeDiff: ${timeDiff} moneyDeltaRate: ${moneyDeltaRate}`);
+        ns.print(`moneyDeltaRate: ${Math.round(moneyDeltaRate, 2)}`);
+        if (ns.args.length > 0) {
+            var targetTime = Math.round(ns.args[0] / moneyDeltaRate, 2);
+            if (targetTime > 3600) {
+                targetTime = `${Math.round(targetTime / 3600.0, 4)} hours`;
+            } else {
+                targetTime = `${targetTime} seconds`;
+            }
+            if (ns.args[0] > ns.getPlayer().money) {
+                ns.print(`Time to target: ${targetTime} ${Math.round(ns.args[0] - ns.getPlayer().money, 0)}`);
+            }
+        }
+
+        ns.print(`servers: ${hackedServers.length}/${serverList.length}`);
+        ns.print(`sharepower +${Math.round((ns.getSharePower() - 1) * 100, 2)}%`);
+        ns.print(`karma: ${Math.round(ns.heart.break(), 1)}`)
+        let moneySources = ns.getMoneySources().sinceInstall;
+        let hacknetIncome = Math.round(moneySources.hacknet);
+        let hacknetExpenses = Math.round(moneySources.hacknet_expenses);
+        let hacknetTotal = (hacknetIncome + hacknetExpenses).toLocaleString();
+        ns.print(`Hacknet Profit: ${hacknetTotal} (${hacknetIncome.toLocaleString()} ${hacknetExpenses.toLocaleString()})`);
+        await ns.asleep(5);
+        // } catch (err) {
+        //     ns.print(`failed!  ${err}`);
+        //     await ns.asleep(1000);
+        // }
 
         await hackNet(ns);
 
