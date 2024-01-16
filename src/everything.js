@@ -12,7 +12,7 @@ const dontScan = [
 ];
 
 const dontRunScriptsOn = [
-    "CSEC",
+    // "CSEC",
     "darkweb",
     "home",
     "avmnite-02h",
