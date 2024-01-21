@@ -109,15 +109,22 @@ export async function main(ns) {
                 let biggestServer = getBiggestServerWeCanBuy(ns);
                 if (biggestServer > 0) {
                     let newHostName = makeHostName(ns);
-                    ns.purchaseServer(newHostName, biggestServer);
+                    ns.purchaseServer(newHostName, 1);
+                } else {
+                    ns.tprint("need more servers?");
                 }
             } else {
                 let smolest = getSmolestServer(ns);
                 if (smolest) {
                     let maxUpgrade = getBiggestServerWeCanBuy(ns);
                     if (maxUpgrade > 0) {
+                        ns.tprint(`upgrading ${smolest} to ${maxUpgrade}`);
                         upgradeServer(ns, smolest, maxUpgrade);
+                    } else {
+                        ns.tprint("No upgrade possible?");
                     }
+                } else {
+                    ns.tprint("No servers to upgrade");
                 }
             }
             await ns.asleep(10);
@@ -133,11 +140,24 @@ function makeHostName(ns) {
 }
 
 
+// /** @param {NS} ns */
+// function getBiggestUpgradeCost(ns) {
+//     let myMoney = ns.getPlayer().money;
+//     let biggestServer = 0;
+//     for (let i = 0; i < 20; i++) {
+//         if (myMoney < ns.getPurchasedServerCost(2 ** i)) {
+//             biggestServer = i - 1;
+//             break;
+//         }
+//     }
+//     return 2 ** biggestServer;
+// }
+
 /** @param {NS} ns */
 function getBiggestServerWeCanBuy(ns) {
     let myMoney = ns.getPlayer().money;
     let biggestServer = 0;
-    for (let i = 0; i < 20; i++) {
+    for (let i = 2; i < 20; i++) {
         if (myMoney < ns.getPurchasedServerCost(2 ** i)) {
             biggestServer = i - 1;
             break;
