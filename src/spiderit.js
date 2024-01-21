@@ -1,6 +1,6 @@
 const badnames = ['darkweb', '0', 0, ".", "home"];
 
-async function spider(ns, myTarget, parents, seen) {
+export async function spider(ns, myTarget, parents, seen) {
     await ns.asleep(1);
     seen.push(myTarget);
 
@@ -21,7 +21,7 @@ async function spider(ns, myTarget, parents, seen) {
                 parents.forEach((parent) => {
                     outputString += `connect ${parent} ; `;
                 })
-                outputString += `connect ${spiderTarget};`;
+                outputString += `connect ${spiderTarget}; hackit`;
                 ns.tprint(outputString);
             }
 

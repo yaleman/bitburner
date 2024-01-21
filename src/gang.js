@@ -39,7 +39,7 @@ function getMinStats(ns, memberName, memberIndex) {
 
     let minStats = {
         // hack: { minValue: rankNumbers[getMultiRank(memberStats[`hack_asc_mult`])], taskName: "Train Hacking" },
-        hack: { minValue: 10, taskName: "Train Hacking" },
+        hack: { minValue: 5, taskName: "Train Hacking" },
         // cha: { minValue: rankNumbers[getMultiRank(memberStats[`cha_asc_mult`])], taskName: "Train Charisma" },
         cha: { minValue: 10, taskName: "Train Charisma" },
         str: { minValue: rankNumbers[getMultiRank(memberStats[`str_asc_mult`])], taskName: "Train Combat" },
@@ -73,6 +73,7 @@ function needsToLearnThings(ns, memberName, memberIndex) {
 /** @param {NS} ns */
 export async function gangTick(ns) {
     let gangInfo = ns.gang.getGangInformation();
+
     let memberNames = ns.gang.getMemberNames();
     const maxWantedPenalty = 0.8;
 
@@ -84,6 +85,12 @@ export async function gangTick(ns) {
 
         // ns.tprint(`Lowest combat stat for ${memberName} is ${getLowestCombatSkill(ns, memberName)}`);
 
+        let memberStats = ns.gang.getMemberInformation(memberName);
+        if (memberStats.task == "Territory Warfare") {
+            // ns.tprint("Territory Warfare");
+            continue;
+        }
+
         if (getMinAscensionMult(ns, memberName, ['str', 'def', 'dex', 'agi']) > minimumAscensionMult) {
             if (ns.gang.ascendMember(memberName)) {
                 ns.print(`${memberName} ascended`);
@@ -92,7 +99,6 @@ export async function gangTick(ns) {
                 ns.print(`failed to ascend ${memberName}`);
             }
         }
-        let memberStats = ns.gang.getMemberInformation(memberName);
 
         buyGear(ns, memberName);
         let newTask;
@@ -103,7 +109,7 @@ export async function gangTick(ns) {
             // newTask = "Vigilante Justice";
             // } else {
             // if (gangInfo.wantedLevel > ) {
-            if (Math.abs(gangInfo.wantedPenalty) <= maxWantedPenalty) {
+            if (Math.abs(gangInfo.wantedPenalty) <= maxWantedPenalty && gangInfo.wantedLevel > 500) {
                 newTask = "Vigilante Justice";
             }
             else {
@@ -199,9 +205,9 @@ function buyGear(ns, memberName) {
         }
         // let equipStats = ns.gang.getEquipmentStats(equipName);
         if (!ns.gang.getMemberInformation(memberName).upgrades.includes(equipName)) {
-            let equipCost = ns.gang.getEquipmentCost(equipName).toFixed(0);
+            let equipCost = ns.gang.getEquipmentCost(equipName);
             if (equipCost < ns.getPlayer().money) {
-                ns.print(`buying ${equipName} for ${memberName} $${equipCost}`);
+                ns.print(`buying ${equipName} for ${memberName} $${equipCost.toLocaleString()}`);
                 ns.gang.purchaseEquipment(memberName, equipName)
             }
 

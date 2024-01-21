@@ -15,9 +15,9 @@ const dontRunScriptsOn = [
     // "CSEC",
     "darkweb",
     "home",
-    "avmnite-02h",
-    "I.I.I.I",
-    "run4theh111z",
+    // "avmnite-02h",
+    // "I.I.I.I",
+    // "run4theh111z",
 
 ];
 
@@ -51,14 +51,13 @@ async function spider(ns, serverList) {
             } catch {
                 continue;
             }
-
             for (var scanTarget of scanResults) {
                 if (!badnames.includes(scanTarget) && !newlist.includes(scanTarget)) {
                     if (ns.getServer(scanTarget).purchasedByPlayer == false) {
                         ns.tprint(`adding ${scanTarget}`);
                         newlist.push(scanTarget);
                     } else {
-                        scpAndRun(ns, scanTarget, "share.js", 1000, scanTarget, false);
+                        scpAndRun(ns, scanTarget, "share.js", 1000, scanTarget, false, dontRunScriptsOn);
                     }
                 }
             }
@@ -67,8 +66,6 @@ async function spider(ns, serverList) {
         ns.tprint("spider failed");
         ns.tprint(err);
     }
-    // await ns.asleep(10);
-    // ns.tprint("returning from spider");
     return [...newlist].sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
 }
 
