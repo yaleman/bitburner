@@ -118,7 +118,7 @@ export async function main(ns) {
                 if (smolest) {
                     let maxUpgrade = getBiggestServerWeCanBuy(ns);
                     if (maxUpgrade > 0) {
-                        ns.tprint(`upgrading ${smolest} to ${maxUpgrade}`);
+                        // ns.tprint(`upgrading ${smolest} to ${maxUpgrade}`);
                         upgradeServer(ns, smolest, maxUpgrade);
                     } else {
                         ns.tprint("No upgrade possible?");
@@ -180,7 +180,7 @@ function upgradeServer(ns, hostname, maxRam) {
         return;
     }
     if (ns.getPurchasedServerUpgradeCost(hostname, maxRam) > ns.getPlayer().money) {
-        ns.tprint("You can't afford that!");
+        // ns.tprint("You can't afford that!");
         return;
     }
     ns.tprint(`Upgrading ${hostname} to ${maxRam}GB`);
