@@ -99,6 +99,8 @@ function needsToLearnThings(ns, memberName, memberIndex) {
 export async function gangTick(ns) {
     let gangInfo = ns.gang.getGangInformation();
 
+    let currentTerritory = gangInfo.territory;
+
     let memberNames = ns.gang.getMemberNames();
     const maxWantedPenalty = 0.8;
 
@@ -110,11 +112,9 @@ export async function gangTick(ns) {
 
         // ns.tprint(`Lowest combat stat for ${memberName} is ${getLowestCombatSkill(ns, memberName)}`);
 
+        buyGear(ns, memberName);
+
         let memberStats = ns.gang.getMemberInformation(memberName);
-        if (memberStats.task == "Territory Warfare") {
-            // ns.tprint("Territory Warfare");
-            continue;
-        }
 
         if (getMinAscensionMult(ns, memberName, ['str', 'def', 'dex', 'agi']) > minimumAscensionMult) {
             if (ns.gang.ascendMember(memberName)) {
@@ -124,8 +124,16 @@ export async function gangTick(ns) {
                 ns.print(`failed to ascend ${memberName}`);
             }
         }
+        if (memberStats.task == "Territory Warfare") {
+            if (currentTerritory > 0.85) {
+                // we're already on our way to winning, just idle
+                ns.gang.setMemberTask(memberName, "Train Combat");
+            }
+            // ns.tprint("Territory Warfare");
+            continue;
+        }
 
-        buyGear(ns, memberName);
+
         let newTask;
 
         if (!needsToLearnThings(ns, memberName, memberIndex)) {
