@@ -1,6 +1,5 @@
 /// does gang things
 
-// const importantStat = ns.gang.getGangInformation().isHacking ? "hack" : "str"
 
 
 const minimumAscensionMult = 1.5;
@@ -13,12 +12,28 @@ const rnk5 = 56000; 	// Rank 5 (x19 multiplier with mods)
 //let rnk6 = 145111; 	// Rank 6 (x36 multiplier with mods)
 
 
+/** Generates numChars * random ascii number/letters
+ * @param {number} numChars
+ */
+function generateRandomAscii(numChars) {
+    let result = '';
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+
+    for (let i = 0; i < numChars; i++) {
+        const randomIndex = Math.floor(Math.random() * characters.length);
+        result += characters.charAt(randomIndex);
+    }
+
+    return result;
+}
+
 const rankNumbers = [
     rnk1, rnk2, rnk3, rnk4, rnk5
 ]
 
 /**
 work out what rank we're at for a given skill
+@param {number} value
 */
 function getMultiRank(value) {
     let i = 0;
@@ -28,7 +43,12 @@ function getMultiRank(value) {
 
     return i - 1;
 }
+/**
+work out required stats for a given member
 
+@param {string} memberName the name of the gang member
+@param {number} memberIndex which index in the list of members is this
+*/
 function getMinStats(ns, memberName, memberIndex) {
     const memberStats = ns.gang.getMemberInformation(memberName);
 
@@ -51,7 +71,12 @@ function getMinStats(ns, memberName, memberIndex) {
 }
 
 
-/** @param {NS} ns */
+/**
+ *
+@param {NS} ns
+@param {string} memberName the name of the gang member
+@param {number} memberIndex which index in the list of members is this
+*/
 function needsToLearnThings(ns, memberName, memberIndex) {
     let memberStats = ns.gang.getMemberInformation(memberName);
     let myMinStats = getMinStats(ns, memberName, memberIndex);
@@ -128,7 +153,7 @@ export async function gangTick(ns) {
     }
 
     if (ns.gang.canRecruitMember()) {
-        let newName = `member${String(memberNames.length).padStart(3, '0')}`;
+        let newName = `member${generateRandomAscii(4)}`;
         if (ns.gang.recruitMember(newName)) {
             ns.tprint(`Recruited ${newName}`);
         } else {
