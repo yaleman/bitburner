@@ -59,9 +59,9 @@ function getMinStats(ns, memberName, memberIndex) {
 
     let minStats = {
         // hack: { minValue: rankNumbers[getMultiRank(memberStats[`hack_asc_mult`])], taskName: "Train Hacking" },
-        hack: { minValue: 5, taskName: "Train Hacking" },
+        hack: { minValue: 1, taskName: "Train Hacking" },
         // cha: { minValue: rankNumbers[getMultiRank(memberStats[`cha_asc_mult`])], taskName: "Train Charisma" },
-        cha: { minValue: 10, taskName: "Train Charisma" },
+        cha: { minValue: 1, taskName: "Train Charisma" },
         str: { minValue: rankNumbers[getMultiRank(memberStats[`str_asc_mult`])], taskName: "Train Combat" },
         def: { minValue: rankNumbers[getMultiRank(memberStats[`def_asc_mult`])], taskName: "Train Combat" },
         dex: { minValue: rankNumbers[getMultiRank(memberStats[`dex_asc_mult`])], taskName: "Train Combat" },
@@ -284,7 +284,7 @@ export async function main(ns) {
             ns.tprint("Finishing oneshot gang.js");
             break;
         }
-        // await ns.gang.nextUpdate();
-        await ns.asleep(1000);
+        await ns.gang.nextUpdate();
+        // await ns.asleep(1000);
     }
 }
