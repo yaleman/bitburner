@@ -107,6 +107,9 @@ export async function gangTick(ns) {
     // ns.tprint(gangInfo);
     //
     // ns.print(`${Math.abs(gangInfo.wantedPenalty)} <= ${maxWantedPenalty} == ${Math.abs(gangInfo.wantedPenalty) <= maxWantedPenalty}`);
+
+    let vigilanteCount = 0;
+
     for (let memberIndex = 0; memberIndex < memberNames.length; memberIndex++) {
         let memberName = memberNames[memberIndex];
 
@@ -137,15 +140,17 @@ export async function gangTick(ns) {
         let newTask;
 
         if (!needsToLearnThings(ns, memberName, memberIndex)) {
-            // if (memberIndex == 0) {
-            // just make the base one always do this, it's faster
-            // newTask = "Vigilante Justice";
-            // } else {
-            // if (gangInfo.wantedLevel > ) {
+
             if (Math.abs(gangInfo.wantedPenalty) <= maxWantedPenalty && gangInfo.wantedLevel > 500) {
-                newTask = "Vigilante Justice";
+                if (vigilanteCount < 2) {
+                    newTask = "Vigilante Justice";
+                    vigilanteCount++;
+                }
+                // else {
+                //     ns.tprint("Too many vigilantes, doing crimes instead");
+                // }
             }
-            else {
+            if (newTask == null) {
                 newTask = getMyCrime(ns, memberStats);
             }
 
