@@ -16,12 +16,23 @@ export async function spider(ns, myTarget, parents, seen) {
                 printIt = true;
             }
 
+
+
             if (printIt) {
+                let stats = ns.getServer(spiderTarget);
+                let myStats = ns.getPlayer();
+                let finalCommand = "hackit";
+                if (stats.requiredHackingSkill > myStats.skills.hacking) {
+                    ns.tprint(`### can't hack ${spiderTarget} yet - ${stats.requiredHackingSkill} > ${myStats.skills.hacking} ###`);
+                    finalCommand = "analyze";
+                }
+
+
                 var outputString = "";
                 parents.forEach((parent) => {
                     outputString += `connect ${parent} ; `;
                 })
-                outputString += `connect ${spiderTarget}; hackit`;
+                outputString += `connect ${spiderTarget}; ${finalCommand}`;
                 ns.tprint(outputString);
             }
 
