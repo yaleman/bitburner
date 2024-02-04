@@ -18,34 +18,66 @@
 
 
 
+const skillPlaces = {
+    "Volhaven": {
+        "strength": "Sector-12",
+        "dexterity": "Sector-23",
+        "defense": "Sector-34",
+        "agility": "Sector-45",
+        "hacking": "Sector-56"
+    },
+    "Sector-12": {
+        "strength": "Powerhouse Gym",
+        "dexterity": "Powerhouse Gym",
+        "defense": "Powerhouse Gym",
+        "agility": "Powerhouse Gym",
+        "hacking": "Sector-56"
+    }
+}
+
 
 /** @param {NS} ns */
 export async function main(ns) {
     ns.disableLog('ALL');
 
-    // if (!ns.ns.hasTorRouter()) {
-    //     for (let i = 0; i < 100; i++) {
-    //         // Usage example:
-    //         const foundSpan = findSpanByAriaLabel("Alpha Enterprises");
-    //         if (foundSpan) {
-    //             ns.print("Found the span with 'aria-label' set to 'Alpha Enterprises':", foundSpan.innerText);
-    //             foundSpan.click();
+    // make sure we have a router
 
-    //             let torButton = findButtonByInnerText("Purchase TOR Router");
-    //             if (torButton != null) {
-    //                 ns.tprint("Buying TOR router");
-    //                 torButton.click();
-    //             }
+    let stats = ns.getPlayer();
 
-    //         } else {
-    //             ns.print("No span with 'aria-label' set to 'Alpha Enterprises' found in the document.");
-    //         }
+    if (!ns.hasTorRouter()) {
+        if (stats.money >= 200000) {
+            ns.singularity.purchaseTor();
+            ns.tprint("Bought ToR router");
+        } else {
+            ns.tprint("Not enough money yet...");
+        }
+    } else {
+        ns.tprint("Already have a ToR Router..")
+    };
 
-    //         await ns.asleep(1000);
-    //     }
+    let minCombatSkills = 80;
+
+    // if (stats.playtimeSinceLastAug < 500000) {
+    // we're doing startup things
+
+    if (stats.skills.strength < minCombatSkills) {
+        // do strength
+        ns.singularity.gymWorkout(skillPlaces[stats.city].strength, "strength", false);
+    } else if (stats.skills.dexterity < minCombatSkills) {
+        ns.singularity.gymWorkout(skillPlaces[stats.city].dexterity, "dexterity", false);
+    } else if (stats.skills.defense < minCombatSkills) {
+        ns.singularity.gymWorkout(skillPlaces[stats.city].defense, "defense", false);
+    } else if (stats.skills.agility < minCombatSkills) {
+        ns.singularity.gymWorkout(skillPlaces[stats.city].agility, "agility", false);
+    } else if (stats.skills.hacking < 50) {
+        // go to Volhaven and do the thing, else use the local
+        // ns.singularity.universityCourse()
+    }
     // }
 
+    // get some skills
 
-    // ns.tprint(ns.ui.getGameInfo());
+
+
 
 }

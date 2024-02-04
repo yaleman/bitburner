@@ -15,9 +15,6 @@ export async function spider(ns, myTarget, parents, seen) {
             } else if (ns.args[0] == spiderTarget || spiderTarget.includes(ns.args[0])) {
                 printIt = true;
             }
-
-
-
             if (printIt) {
                 let stats = ns.getServer(spiderTarget);
                 let myStats = ns.getPlayer();
@@ -26,8 +23,6 @@ export async function spider(ns, myTarget, parents, seen) {
                     ns.tprint(`### can't hack ${spiderTarget} yet - ${stats.requiredHackingSkill} > ${myStats.skills.hacking} ###`);
                     finalCommand = "analyze";
                 }
-
-
                 var outputString = "";
                 parents.forEach((parent) => {
                     outputString += `connect ${parent} ; `;
