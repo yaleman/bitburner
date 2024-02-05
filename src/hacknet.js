@@ -45,8 +45,10 @@ export async function hackNet(ns) {
   var boughtsomething = false;
   var leavemoney = 0;
 
+  let stats = ns.getPlayer();
+
   if (!isValidNumber(ns.args[0])) {
-    leavemoney = Math.round(ns.getPlayer().money * 0.5);
+    leavemoney = Math.round(stats.money * 0.5);
   } else {
     // ns.tprint("Using input arg");
     leavemoney = parseFloat(ns.args[0]);

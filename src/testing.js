@@ -53,7 +53,7 @@ export async function main(ns) {
         }
     } else {
         ns.tprint("Already have a ToR Router..")
-    };
+    }
 
     let minCombatSkills = 80;
 
