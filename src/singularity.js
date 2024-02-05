@@ -122,27 +122,18 @@ export async function main(ns) {
             if (ns.heart.break() > -54000) {
                 // do the crime thing
                 if (ns.singularity.getCrimeChance("Homicide") > 0.8) {
-                    if (getTask(ns) !== "Homicide") {
-                        ns.singularity.commitCrime("Homicide", false);
-                        ns.print("Doing crime: Homicide");
-                        updateTask(ns, "Homicide");
-                    } else {
-
-                        // ns.print("Already killin'...");
-                    }
+                    doCrime(ns, "Homicide");
                 } else {
                     // ns.print(`Homicide chance: ${ns.singularity.getCrimeChance("Homicide")}`);
-                    if (getTask() != "Mug") {
-                        ns.singularity.commitCrime("Mug", false);
-                        ns.print("Doing crime: Mug");
-                        updateTask(ns, "Mug");
-                    } else {
-                        // ns.print("Already mugging...");
-
-                    }
+                    doCrime(ns, "Mug");
                 }
             } else {
-                ns.print("Already enough heartbreak!");
+                if (!ns.gang.inGang) {
+                    ns.print("Enough heartbreak, creating gang.");
+                    ns.gang.createGang("Slum Snakes");
+                    ns.exec("gang.js", "home");
+                }
+
             }
         }
 
@@ -154,7 +145,7 @@ export async function main(ns) {
             }
         }
 
-        ["Netburners", "The Syndicate", "Slum Snakes"].forEach((faction) => {
+        ["Netburners", "The Syndicate", "Slum Snakes", "NiteSec", "Speakers for the Dead"].forEach((faction) => {
 
             autoFaction(ns, faction);
         });
@@ -164,6 +155,16 @@ export async function main(ns) {
 
     }
 
+}
+
+function doCrime(ns, crimeName) {
+    if (getTask(ns) !== crimeName) {
+        ns.singularity.commitCrime(crimeName, false);
+        ns.print(`Doing crime: ${crimeName}`);
+        updateTask(ns, crimeName);
+    } else {
+        // ns.print(`Already doing crime: ${crimeName}`);
+    }
 }
 
 function autoFaction(ns, name) {

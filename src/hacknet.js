@@ -52,7 +52,9 @@ export async function hackNet(ns) {
     leavemoney = parseFloat(ns.args[0]);
   }
 
-  let currmoney = Number(ns.getPlayer().money) - Number(leavemoney);
+  let player = ns.getPlayer();
+
+  let currmoney = Number(player.money) - Number(leavemoney);
   // ns.tprint(`have ${currmoney.toLocaleString()} to spend, orig ${Math.round(ns.getPlayer().money).toLocaleString()} leaving ${leavemoney.toLocaleString()}`)
 
   if (currmoney <= 0) {
@@ -64,6 +66,11 @@ export async function hackNet(ns) {
   var upgradeType = "";
   var highestUpgradeValue = 0;
   var upgradeCost = 0;
+
+  let maxUpgradeCost = 10e6;
+  if (stats.bitNodeN == 4) {
+    maxUpgradeCost / 100;
+  }
 
   for (var node = 0; node < ns.hacknet.numNodes(); node++) {
     let stats = ns.hacknet.getNodeStats(node);
@@ -113,7 +120,7 @@ export async function hackNet(ns) {
 
   else if (nodeToUpgrade != -1) {
     // ns.tprint(`Want to upgrade ${nodeToUpgrade} ${upgradeType} for ${Math.round(upgradeCost)}`);
-    if (upgradeCost <= 10e6 || upgradeCost < getTotalHacknetProfit(ns) * 2) {
+    if (upgradeCost <= maxUpgradeCost || upgradeCost < getTotalHacknetProfit(ns) * 2) {
       ns.print(`upgrading ${upgradeType} on node #${nodeToUpgrade.toLocaleString()} for ${Math.round(upgradeCost, 2).toLocaleString()} `); // node cost ${Math.round(ns.hacknet.getPurchaseNodeCost(), 0).toLocaleString()}
       switch (upgradeType) {
         case 'cpu':
