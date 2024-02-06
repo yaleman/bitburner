@@ -83,19 +83,19 @@ export async function main(ns) {
                 ns.print("Doing strength");
                 updateTask(ns, "Strength");
             }
-        } else if (stats.skills.dexterity < minCombatSkills) {
-            if (getTask(ns) != "Dexterity") {
-                gymCity(ns, stats);
-                ns.singularity.gymWorkout(skillPlaces[stats.city].dexterity, "dexterity", false);
-                ns.print("Doing dexterity");
-                updateTask(ns, "Dexterity")
-            }
         } else if (stats.skills.defense < minCombatSkills) {
             if (getTask(ns) != "Defense") {
                 gymCity(ns, stats);
                 ns.singularity.gymWorkout(skillPlaces[stats.city].defense, "defense", false);
                 ns.print("Doing defense");
                 updateTask(ns, "Defense");
+            }
+        } else if (stats.skills.dexterity < minCombatSkills) {
+            if (getTask(ns) != "Dexterity") {
+                gymCity(ns, stats);
+                ns.singularity.gymWorkout(skillPlaces[stats.city].dexterity, "dexterity", false);
+                ns.print("Doing dexterity");
+                updateTask(ns, "Dexterity")
             }
         } else if (stats.skills.agility < minCombatSkills) {
             if (getTask(ns) != "Agility") {
@@ -104,7 +104,7 @@ export async function main(ns) {
                 ns.print("Doing agility");
                 updateTask(ns, "Agility");
             }
-        } else if (stats.skills.hacking < minHacking) {
+        } else if (stats.skills.hacking < minHacking && stats.money >= 0) {
             // go to Volhaven and do the thing, else use the local
             if (stats.city !== "Volhaven" && stats.money >= 200000) {
                 ns.singularity.travelToCity("Volhaven");
@@ -121,7 +121,7 @@ export async function main(ns) {
             // ns.print("All skills are ok");
             if (ns.heart.break() > -54000) {
                 // do the crime thing
-                if (ns.singularity.getCrimeChance("Homicide") > 0.8) {
+                if (ns.singularity.getCrimeChance("Homicide") > 0.75) {
                     doCrime(ns, "Homicide");
                 } else {
                     // ns.print(`Homicide chance: ${ns.singularity.getCrimeChance("Homicide")}`);
@@ -137,18 +137,18 @@ export async function main(ns) {
             }
         }
 
+        ns.exec("x_joinfaction.js", "n00dles");
 
+        // if (ns.getServerRequiredHackingLevel("CSEC") <= stats.skills.hacking) {
+        //     if (!stats.factions.includes("CyberSec")) {
+        //         ns.singularity.joinFaction("CyberSec");
+        //     }
+        // }
 
-        if (ns.getServerRequiredHackingLevel("CSEC") <= stats.skills.hacking) {
-            if (!stats.factions.includes("CyberSec")) {
-                ns.singularity.joinFaction("CyberSec");
-            }
-        }
+        // ["Netburners", "The Syndicate", "Slum Snakes", "NiteSec", "Speakers for the Dead", "The Black Hand", "BitRunners", "Daedalus"].forEach((faction) => {
 
-        ["Netburners", "The Syndicate", "Slum Snakes", "NiteSec", "Speakers for the Dead"].forEach((faction) => {
-
-            autoFaction(ns, faction);
-        });
+        //     autoFaction(ns, faction);
+        // });
 
         await ns.asleep(100);
 
@@ -167,8 +167,8 @@ function doCrime(ns, crimeName) {
     }
 }
 
-function autoFaction(ns, name) {
-    if (!ns.getPlayer().factions.includes(name)) {
-        ns.singularity.joinFaction(name);
-    }
-}
+// function autoFaction(ns, name) {
+//     if (!ns.getPlayer().factions.includes(name)) {
+//         ns.singularity.joinFaction(name);
+//     }
+// }
