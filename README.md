@@ -5,9 +5,9 @@ Random notes
 ## Alias to buy all the things
 
 ```shell
-alias dw="buy ServerProfiler.exe; buy BruteSSH.exe; buy FTPCrack.exe; buy relaySMTP.exe; buy HTTPWorm.exe; buy SQLInject.exe;  buy AutoLink.exe; buy Formulas.exe; buy -l;"
+alias dw="buy ServerProfiler.exe; buy BruteSSH.exe; buy FTPCrack.exe; buy relaySMTP.exe; buy HTTPWorm.exe; buy SQLInject.exe;  buy Formulas.exe; buy -l;"
 
-alias apps="buy DeepscanV1.exe; buy DeepscanV2.exe;"
+alias apps="buy DeepscanV1.exe; buy DeepscanV2.exe ;  buy AutoLink.exe;"
 
 ```
 
