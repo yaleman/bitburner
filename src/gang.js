@@ -271,7 +271,10 @@ export async function main(ns) {
 
     // eslint-disable-next-line no-constant-condition
     while (true) {
-        await gangTick(ns);
+
+        if (ns.gang.inGang()) {
+            await gangTick(ns);
+        }
 
 
         // TODO: implement rolling average of checking the wanted level and ensure it's trending down towards the thingie
