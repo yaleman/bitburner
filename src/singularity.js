@@ -51,7 +51,10 @@ function getTask(ns) {
 
 /** @param {NS} ns */
 export async function main(ns) {
-    ns.disableLog('ALL');
+    // ns.disableLog('ALL');
+    ns.disableLog('asleep');
+    ns.disableLog('exec');
+    ns.disableLog('scp');
 
     ns.print(`Combat skills min: ${minCombatSkills}`);
 
@@ -128,7 +131,7 @@ export async function main(ns) {
                     doCrime(ns, "Mug");
                 }
             } else {
-                if (!ns.gang.inGang) {
+                if (!ns.gang.inGang()) {
                     ns.print("Enough heartbreak, creating gang.");
                     ns.gang.createGang("Slum Snakes");
                     ns.exec("gang.js", "home");
@@ -137,7 +140,16 @@ export async function main(ns) {
             }
         }
 
-        ns.exec("x_joinfaction.js", "n00dles");
+        const joinFactionServer = "n00dles";
+
+        // if (ns.scp("x_joinfaction.js", joinFactionServer, "home")) {
+        //     ns.killall(joinFactionServer);
+        if (ns.exec("x_joinfaction.js", "home") == 0) {
+            ns.print(`Failed to run x_joinfaction.js on ${joinFactionServer}`);
+        }
+        // } else {
+        //     ns.print(`Failed to copy x_joinfaction.js to ${joinFactionServer}`);
+        // }
 
         // if (ns.getServerRequiredHackingLevel("CSEC") <= stats.skills.hacking) {
         //     if (!stats.factions.includes("CyberSec")) {
@@ -163,7 +175,7 @@ function doCrime(ns, crimeName) {
         ns.print(`Doing crime: ${crimeName}`);
         updateTask(ns, crimeName);
     } else {
-        // ns.print(`Already doing crime: ${crimeName}`);
+        // ns.print(`Already doing crime: ${ crimeName }`);
     }
 }
 
