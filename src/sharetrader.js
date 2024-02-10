@@ -103,40 +103,35 @@ async function sell(ns, stock, numShares) {
 
 async function shareTick(ns) {
     if (!ns.stock.hasWSEAccount()) {
-        ns.stock.purchaseWseAccount()
+        if (ns.getPlayer().money > 200000000) {
+            ns.stock.purchaseWseAccount()
+        } else {
+            ns.print("Waiting for WSE Account...");
+            return
+        }
     }
     if (!ns.stock.hasTIXAPIAccess()) {
-
-        // if (stats.money > 100000) {
-        ns.tprint("Purchasing TIX API access");
-        ns.stock.purchaseTixApi()
-        // }
+        if (ns.getPlayer().money > 5000000000) {
+            ns.stock.purchaseTixApi()
+        } else {
+            ns.print("Waiting for TIX API access and 4S Market Data...");
+            return;
+        }
     } else if (!ns.stock.has4SData()) {
-        ns.stock.purchase4SMarketData();
+        if (ns.getPlayer().money > 1000000000) {
+            ns.stock.purchase4SMarketData();
+        } else {
+            ns.print("Waiting for 4S Market Data...");
+            return;
+        }
     } else if (!ns.stock.has4SDataTIXAPI()) {
-        // if (stats.money > 25000000000) {
-        ns.stock.purchase4SMarketDataTixApi();
-        // }
+        if (ns.getPlayer().money > 25000000000) {
+            ns.stock.purchase4SMarketDataTixApi();
+        } else {
+            ns.print("Waiting for 4S Market Data TIX API...");
+            return;
+        }
     }
-
-
-
-    if (!ns.stock.hasTIXAPIAccess()) {
-        ns.print("Waiting for TIX API access and 4S Market Data...");
-        await ns.asleep(5000);
-        return;
-    }
-    if (!ns.stock.has4SData()) {
-        ns.print("Waiting for 4S Market Data...");
-        await ns.asleep(5000);
-        return;
-    }
-    if (!ns.stock.has4SDataTIXAPI()) {
-        ns.print("Waiting for 4S Market Data TIX API...");
-        await ns.asleep(5000);
-        return;
-    }
-
 
     let loaddata = readShareData(ns, SHAREDATA);
 
