@@ -23,24 +23,24 @@ Loads the data for restoration on restart, if the playtime is higher than the cu
 then the user has restarted and they can start again fresh.
 */
 function readShareData(ns, filename) {
-    ns.tprint(`reading share list from ${filename}`);
+    ns.print(`reading share list from ${filename}`);
     let filecontents = ns.read(filename);
     let playtime = ns.getResetInfo().lastAugReset;
 
     if (filecontents.length == 0) {
-        ns.tprint("got empty file");
+        ns.print("got empty file");
         return { "playtime": playtime, "stocks": [] };
     }
     try {
         let res = JSON.parse(filecontents);
-        ns.tprint(`read share data from ${filename}`);
+        ns.print(`read share data from ${filename}`);
         if (playtime < res.playtime) {
-            ns.tprint(`playtime ${playtime} < ${res.playtime}, resetting`);
+            ns.print(`playtime ${playtime} < ${res.playtime}, resetting`);
             return { "playtime": playtime, "stocks": [] }
         }
         return res;
     } catch (err) {
-        ns.tprint(`failed to read ${filename}: ${err}`);
+        ns.print(`failed to read ${filename}: ${err}`);
         return { "playtime": playtime, "stocks": [] };
     }
 }
@@ -91,13 +91,13 @@ async function buy(ns, stock, numShares) {
     const max = ns.stock.getMaxShares(stock.sym)
     numShares = max < numShares ? max : numShares;
     await ns.stock.buyStock(stock.sym, numShares);
-    ns.tprint(`Bought ${stock.sym} for ${format(numShares * stock.price)}`);
+    ns.print(`Bought ${stock.sym} for ${format(numShares * stock.price)}`);
 }
 
 async function sell(ns, stock, numShares) {
     let profit = numShares * ((stock.price - stock.buyPrice) - (2 * commission));
     await ns.stock.sellStock(stock.sym, numShares);
-    ns.tprint(`Sold ${stock.sym} for profit of ${format(profit)}`);
+    ns.print(`Sold ${stock.sym} for profit of ${format(profit)}`);
 }
 
 
@@ -117,14 +117,16 @@ async function shareTick(ns) {
             ns.print("Waiting for TIX API access and 4S Market Data...");
             return;
         }
-    } else if (!ns.stock.has4SData()) {
+    }
+    if (!ns.stock.has4SData()) {
         if (ns.getPlayer().money > 1000000000) {
             ns.stock.purchase4SMarketData();
         } else {
             ns.print("Waiting for 4S Market Data...");
             return;
         }
-    } else if (!ns.stock.has4SDataTIXAPI()) {
+    }
+    if (!ns.stock.has4SDataTIXAPI()) {
         if (ns.getPlayer().money > 25000000000) {
             ns.stock.purchase4SMarketDataTixApi();
         } else {

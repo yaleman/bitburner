@@ -136,7 +136,10 @@ export async function main(ns) {
                     ns.gang.createGang("Slum Snakes");
                     ns.exec("gang.js", "home");
                 }
-
+                if (stats.skills.hacking > 2500 && getTask(ns) != "Daedalus" && stats.factions.includes("Daedalus")) {
+                    ns.singularity.workForFaction("Daedalus", "hacking", false);
+                    updateTask(ns, "Daedalus");
+                }
             }
         }
 

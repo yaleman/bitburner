@@ -118,7 +118,6 @@ export async function main(ns) {
                 if (smolest) {
                     let maxUpgrade = getBiggestServerWeCanBuy(ns);
                     if (maxUpgrade > 0) {
-                        // ns.tprint(`upgrading ${smolest} to ${maxUpgrade}`);
                         upgradeServer(ns, smolest, maxUpgrade);
                     } else {
                         ns.tprint("No upgrade possible?");
@@ -183,7 +182,7 @@ function upgradeServer(ns, hostname, maxRam) {
         // ns.tprint("You can't afford that!");
         return;
     }
-    ns.tprint(`Upgrading ${hostname} to ${maxRam}GB`);
+    ns.print(`Upgrading ${hostname} to ${maxRam}GB`);
     ns.upgradePurchasedServer(hostname, maxRam);
     // ns.tprint("Done!");
 
