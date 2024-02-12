@@ -175,8 +175,8 @@ export async function gangTick(ns) {
     }
 }
 
+/// Get the crime they should be doing.
 function getMyCrime(ns, memberStats) {
-    // ns.tprint(ns.gang.getTaskStats("Traffick Illegal Arms"));
     if (memberStats.str >= rnk3) {
         return "Human Trafficking";
     } else if (memberStats.str >= rnk2) {

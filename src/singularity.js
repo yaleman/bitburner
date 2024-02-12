@@ -20,7 +20,7 @@ const skillPlaces = {
 }
 
 
-let minCombatSkills = 80;
+let minCombatSkills = 100;
 let minHacking = 100;
 const taskFile = "task.txt";
 
@@ -39,8 +39,8 @@ function updateTask(ns, taskName) {
     }
 }
 
-
-function getTask(ns) {
+/// Find out what task we're doing.
+function getMyTask(ns) {
     if (ns.fileExists(taskFile, "home")) {
         if (!ns.getHostname() == "home") {
             ns.scp(taskFile, ns.getHostname(), "home");
@@ -51,6 +51,12 @@ function getTask(ns) {
 
 /** @param {NS} ns */
 export async function main(ns) {
+
+
+    let minCombatSkills = 80;
+
+    let minHacking = 100;
+
     // ns.disableLog('ALL');
     ns.disableLog('asleep');
     ns.disableLog('exec');
@@ -64,6 +70,9 @@ export async function main(ns) {
     while (true) {
 
         let stats = ns.getPlayer();
+        if (stats.bitNodeN == 6) {
+            minCombatSkills = 100;
+        }
 
 
         // make sure we have a router
@@ -81,27 +90,27 @@ export async function main(ns) {
         if (stats.skills.strength < minCombatSkills) {
             // do strength
             gymCity(ns, stats);
-            if (getTask(ns) != "Strength") {
+            if (getMyTask(ns) != "Strength") {
                 ns.singularity.gymWorkout(skillPlaces[stats.city].strength, "strength", false);
                 ns.print("Doing strength");
                 updateTask(ns, "Strength");
             }
         } else if (stats.skills.defense < minCombatSkills) {
-            if (getTask(ns) != "Defense") {
+            if (getMyTask(ns) != "Defense") {
                 gymCity(ns, stats);
                 ns.singularity.gymWorkout(skillPlaces[stats.city].defense, "defense", false);
                 ns.print("Doing defense");
                 updateTask(ns, "Defense");
             }
         } else if (stats.skills.dexterity < minCombatSkills) {
-            if (getTask(ns) != "Dexterity") {
+            if (getMyTask(ns) != "Dexterity") {
                 gymCity(ns, stats);
                 ns.singularity.gymWorkout(skillPlaces[stats.city].dexterity, "dexterity", false);
                 ns.print("Doing dexterity");
                 updateTask(ns, "Dexterity")
             }
         } else if (stats.skills.agility < minCombatSkills) {
-            if (getTask(ns) != "Agility") {
+            if (getMyTask(ns) != "Agility") {
                 gymCity(ns, stats);
                 ns.singularity.gymWorkout(skillPlaces[stats.city].agility, "agility", false);
                 ns.print("Doing agility");
@@ -113,7 +122,7 @@ export async function main(ns) {
                 ns.singularity.travelToCity("Volhaven");
                 ns.print("Traveling to Volhaven");
             } else {
-                if (getTask(ns) != "Hacking") {
+                if (getMyTask(ns) != "Hacking") {
                     ns.singularity.universityCourse(skillPlaces[stats.city].hacking, "Algorithms", false);
                     ns.print("Doing Hacking");
                     updateTask(ns, "Hacking");
@@ -131,12 +140,13 @@ export async function main(ns) {
                     doCrime(ns, "Mug");
                 }
             } else {
-                if (!ns.gang.inGang()) {
-                    ns.print("Enough heartbreak, creating gang.");
-                    ns.gang.createGang("Slum Snakes");
-                    ns.exec("gang.js", "home");
-                }
-                if (stats.skills.hacking > 2500 && getTask(ns) != "Daedalus" && stats.factions.includes("Daedalus")) {
+                // if (!ns.gang.inGang()) {
+                //     ns.print("Enough heartbreak, creating gang.");
+                //     ns.gang.createGang("Slum Snakes");
+                //     ns.exec("gang.js", "home");
+                // }
+
+                if (stats.skills.hacking > 2500 && getMyTask(ns) != "Daedalus" && stats.factions.includes("Daedalus") && !ns.singularity.getOwnedAugmentations().includes("The Red Pill")) {
                     ns.singularity.workForFaction("Daedalus", "hacking", false);
                     updateTask(ns, "Daedalus");
                 }
@@ -173,7 +183,7 @@ export async function main(ns) {
 }
 
 function doCrime(ns, crimeName) {
-    if (getTask(ns) !== crimeName) {
+    if (getMyTask(ns) !== crimeName) {
         ns.singularity.commitCrime(crimeName, false);
         ns.print(`Doing crime: ${crimeName}`);
         updateTask(ns, crimeName);
